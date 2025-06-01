@@ -1,3 +1,4 @@
+
 # Fanvue Adult Content Creation Chatbot
 
 A sophisticated Gradio-based application for generating adult content prompts using uncensored AI models. This chatbot is specifically designed for content creators on platforms like Fanvue, OnlyFans, and other adult content platforms.
@@ -24,7 +25,7 @@ A sophisticated Gradio-based application for generating adult content prompts us
 
 1. **Download the project**:
    ```bash
-   git clone https://github.com/yourusername/fanvue-content-chatbot.git
+   git clone https://github.com/Valorking6/fanvue-content-chatbot.git
    cd fanvue-content-chatbot
    ```
 
@@ -76,7 +77,7 @@ python main.py
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/fanvue-content-chatbot.git
+   git clone https://github.com/Valorking6/fanvue-content-chatbot.git
    cd fanvue-content-chatbot
    ```
 
@@ -225,13 +226,14 @@ Contributions are welcome! Please:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## 🔗 Links
 
-- Built with [Gradio](https://gradio.app/) for the web interface
-- Uses [ctransformers](https://github.com/marella/ctransformers) for model inference
-- Models from [TheBloke](https://huggingface.co/TheBloke) on Hugging Face
-- Inspired by the adult content creator community
+- **Repository**: https://github.com/Valorking6/fanvue-content-chatbot
+- **Issues**: https://github.com/Valorking6/fanvue-content-chatbot/issues
+- **Documentation**: See the `example_usage.md` file for detailed usage examples
 
 ---
 
-**Disclaimer**: This software is intended for adult content creators (18+) and should be used responsibly. Users are responsible for ensuring their content complies with applicable laws and platform guidelines.
+**⚠️ 18+ Content Warning**: This application is designed for adult content creation and is intended for users 18 years and older. Please use responsibly and in compliance with all applicable laws and platform guidelines.
+
+**🚀 Application runs on port 7861**: Access the interface at `http://127.0.0.1:7861`

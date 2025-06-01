@@ -1,3 +1,4 @@
+
 @echo off
 echo ========================================
 echo Starting Fanvue Chatbot
