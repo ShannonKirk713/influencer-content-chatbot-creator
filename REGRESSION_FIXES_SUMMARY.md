@@ -83,14 +83,14 @@
 ### ✅ Functionality Tests
 - Image to Video tab: ✅ Restored and functional
 - Content types: ✅ All 4 types available (image_prompt, video_prompt, image_to_video, general_chat)
-- Server startup: ✅ Running on localhost:7860
+- Server startup: ✅ Running on 127.0.0.1:7861
 - HTTP response: ✅ 200 OK
 
 ## 🚀 Application Status
 
 The Fanvue Chatbot is now fully functional with all critical regressions fixed:
 
-1. **Server Status:** ✅ Running on http://localhost:7860
+1. **Server Status:** ✅ Running on http://127.0.0.1:7861
 2. **Model Loading:** ✅ llama-cpp-python properly installed and working
 3. **Uncensored Models:** ✅ All TheBloke models restored
 4. **Image to Video:** ✅ Tab restored with enhanced functionality

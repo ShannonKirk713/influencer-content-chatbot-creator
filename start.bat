@@ -16,7 +16,7 @@ echo Activating virtual environment...
 call venv\Scripts\activate.bat
 
 echo Starting Fanvue Chatbot...
-echo The application will be available at: http://localhost:7860
+echo The application will be available at: http://127.0.0.1:7861
 echo Press Ctrl+C to stop the application
 echo.
 

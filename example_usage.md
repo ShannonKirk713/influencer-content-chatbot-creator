@@ -14,7 +14,7 @@ python main.py
 ```
 
 2. **Load your first model**
-   - Open http://localhost:7860
+   - Open http://127.0.0.1:7861
    - Go to "Model Settings" tab
    - Select "Luna-AI-Llama2-Uncensored"
    - Set GPU layers to 0 (if no GPU) or 20-30 (if you have GPU)

@@ -165,17 +165,8 @@ class PromptComplexityAnalyzer:
         else:
             distilled_cfg = 16  # Highly complex prompts
         
-        # CFG Scale: 6.0-12.0 based on complexity
-        if complexity_score < 20:
-            cfg_scale = 6.5
-        elif complexity_score < 40:
-            cfg_scale = 7.5
-        elif complexity_score < 60:
-            cfg_scale = 8.5
-        elif complexity_score < 80:
-            cfg_scale = 10.0
-        else:
-            cfg_scale = 11.5
+        # CFG Scale: Always 1 for Flux format
+        cfg_scale = 1
         
         # Sampler selection based on complexity
         if complexity_score < 30:

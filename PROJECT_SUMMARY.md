@@ -2,7 +2,7 @@
 
 ## ✅ Successfully Delivered
 
-I have successfully created a complete Gradio-based chatbot application for Fanvue adult content creation. The application is now **running live** at `http://localhost:7860` and includes all requested features.
+I have successfully created a complete Gradio-based chatbot application for Fanvue adult content creation. The application is now **running live** at `http://127.0.0.1:7861` and includes all requested features.
 
 ## 🚀 What Was Built
 
@@ -65,7 +65,7 @@ I have successfully created a complete Gradio-based chatbot application for Fanv
 ## 🔧 Current Status
 
 ### ✅ Working Features
-- **Application Running**: Live at http://localhost:7860
+- **Application Running**: Live at http://127.0.0.1:7861
 - **Interface Loaded**: All tabs and controls functional
 - **Dependencies Installed**: All required packages installed
 - **Model Ready**: Can load Luna-AI-Llama2-Uncensored model
@@ -134,5 +134,5 @@ The application is **ready for immediate use** and provides professional-grade a
 ---
 
 **🚀 Application Status: LIVE and READY**  
-**📍 Access URL: http://localhost:7860**  
+**📍 Access URL: http://127.0.0.1:7861**  
 **📅 Completed: June 1, 2025**
