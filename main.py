@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Fanvue Chatbot - Advanced AI Assistant for Adult Content Creation
-Enhanced with multiple models, image analysis, and comprehensive content generation
+Enhanced with multiple models, image analysis, comprehensive content generation, and RTX GPU detection
 """
 
 import gradio as gr
@@ -16,6 +16,7 @@ import random
 # Import our modules
 from image_analyzer import image_analyzer
 from sd_forge_utils import PromptComplexityAnalyzer, SDForgeParams
+from gpu_utils import RTXGPUDetector, get_gpu_recommendations
 
 # Configure logging
 logging.basicConfig(
@@ -29,7 +30,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class FanvueChatbot:
-    """Main chatbot class with model management and content generation."""
+    """Main chatbot class with model management, content generation, and GPU detection."""
     
     def __init__(self):
         self.llm = None
@@ -37,6 +38,10 @@ class FanvueChatbot:
         self.conversation_history = []
         self.history_folder = "conversation_logs"
         self.complexity_analyzer = PromptComplexityAnalyzer()
+        
+        # Initialize GPU detection system
+        self.gpu_detector = RTXGPUDetector()
+        self.gpu_info = self.gpu_detector.get_optimal_settings()
         
         # Create history folder
         os.makedirs(self.history_folder, exist_ok=True)
@@ -234,6 +239,28 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             }
         }
 
+    def get_gpu_info_display(self) -> str:
+        """Get formatted GPU information for display."""
+        if not self.gpu_detector.detected_gpus:
+            return "❌ No NVIDIA RTX GPUs detected"
+        
+        gpu_info = []
+        for gpu in self.gpu_detector.detected_gpus:
+            specs = gpu['specs']
+            gpu_info.append(f"🎮 {gpu['name']}")
+            gpu_info.append(f"   VRAM: {specs.vram_gb} GB {specs.memory_type}")
+            gpu_info.append(f"   Series: {specs.series.value}")
+            gpu_info.append(f"   Performance Tier: {self.gpu_detector._get_performance_tier(specs.model)}")
+        
+        return "\n".join(gpu_info)
+
+    def get_recommended_gpu_layers(self, model_size_gb: float = 7.0) -> int:
+        """Get recommended GPU layers based on detected hardware."""
+        if not self.gpu_info or "error" in self.gpu_info:
+            return 35  # Default fallback
+        
+        return self.gpu_info.get("recommended_layers", 35)
+
     def save_conversation_to_txt(self, prompt: str, response: str, content_type: str):
         """Save conversation entry to timestamped txt file."""
         try:
@@ -244,21 +271,21 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             filename = f"{self.history_folder}/conversation_{date_str}.txt"
             
             with open(filename, "a", encoding="utf-8") as f:
-                f.write(f"\\n{'='*80}\\n")
-                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\\n")
-                f.write(f"Content Type: {content_type}\\n")
-                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\\n")
-                f.write(f"{'='*80}\\n")
-                f.write(f"USER PROMPT:\\n{prompt}\\n")
-                f.write(f"\\nAI RESPONSE:\\n{response}\\n")
+                f.write(f"\n{'='*80}\n")
+                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Content Type: {content_type}\n")
+                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\n")
+                f.write(f"{'='*80}\n")
+                f.write(f"USER PROMPT:\n{prompt}\n")
+                f.write(f"\nAI RESPONSE:\n{response}\n")
                 
             print(f"💾 Conversation saved to {filename}")
             
         except Exception as e:
             print(f"❌ Error saving conversation: {e}")
 
-    def load_model(self, model_name: str, gpu_layers: int = 35, progress=gr.Progress()) -> str:
-        """Load the specified model."""
+    def load_model(self, model_name: str, gpu_layers: int = None, progress=gr.Progress()) -> str:
+        """Load the specified model with GPU-optimized settings."""
         try:
             print(f"🔄 Loading model: {model_name}")
             progress(0.1, f"Initializing {model_name}...")
@@ -278,6 +305,10 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             
             model_config = self.model_configs[model_name]
             progress(0.3, f"Loading {model_name} from {model_config['repo_id']}...")
+            
+            # Use GPU-optimized layers if not specified
+            if gpu_layers is None:
+                gpu_layers = self.get_recommended_gpu_layers()
             
             # Load the model
             self.llm = Llama.from_pretrained(
@@ -585,6 +616,10 @@ def export_conversation() -> str:
         print(error_msg)
         return error_msg
 
+def get_gpu_status() -> str:
+    """Get current GPU status and recommendations."""
+    return chatbot.get_gpu_info_display()
+
 def create_interface():
     """Create and configure the Gradio interface."""
     
@@ -596,6 +631,7 @@ def create_interface():
         .model-info { background: #f0f0f0; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
         .status-box { background: #e8f5e8; padding: 0.5rem; border-radius: 4px; }
         .error-box { background: #ffe8e8; padding: 0.5rem; border-radius: 4px; }
+        .gpu-info { background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
         .warning-box { 
             background: #fff3cd; 
             border: 1px solid #ffeaa7; 
@@ -615,6 +651,11 @@ def create_interface():
         .dark .model-info {
             background: #374151 !important;
             color: #f9fafb !important;
+        }
+        
+        .dark .gpu-info {
+            background: #1e3a8a !important;
+            color: #dbeafe !important;
         }
         
         /* Fix dropdown and text visibility in dark theme */
@@ -641,7 +682,7 @@ def create_interface():
         gr.HTML("""
         <div class="main-header">
             <h1>🔥 Fanvue Chatbot - Advanced AI Assistant</h1>
-            <p>Professional AI assistant for adult content creation with multiple models, image analysis, and advanced features</p>
+            <p>Professional AI assistant for adult content creation with multiple models, image analysis, RTX GPU detection, and advanced features</p>
         </div>
         """)
         
@@ -664,6 +705,15 @@ def create_interface():
             with gr.Tab("🤖 Model Management"):
                 gr.Markdown("## Load and Manage AI Models")
                 
+                # GPU Information Section
+                gr.Markdown("### 🎮 GPU Detection & Optimization")
+                gpu_status_display = gr.Textbox(
+                    label="Detected RTX GPUs",
+                    value=get_gpu_status(),
+                    interactive=False,
+                    lines=6
+                )
+                
                 with gr.Row():
                     with gr.Column():
                         model_dropdown = gr.Dropdown(
@@ -672,12 +722,14 @@ def create_interface():
                             value="Luna-AI-Llama2-Uncensored"
                         )
                         
+                        # Set default GPU layers based on detected hardware
+                        default_gpu_layers = chatbot.get_recommended_gpu_layers()
                         gpu_layers_slider = gr.Slider(
                             minimum=0,
                             maximum=80,
-                            value=35,
+                            value=default_gpu_layers,
                             step=1,
-                            label="GPU Layers",
+                            label=f"GPU Layers (Recommended: {default_gpu_layers})",
                         )
                         
                         load_btn = gr.Button("🚀 Load Model", variant="primary", size="lg")
@@ -921,8 +973,15 @@ def create_interface():
     return interface
 
 if __name__ == "__main__":
-    print("🚀 Starting Fanvue Chatbot...")
+    print("🚀 Starting Fanvue Chatbot with RTX GPU Detection...")
     print("📍 Server will be available at: http://127.0.0.1:7861")
+    
+    # Print GPU detection results
+    print("\n" + "="*60)
+    print("🎮 RTX GPU DETECTION RESULTS")
+    print("="*60)
+    print(get_gpu_status())
+    print("="*60)
     
     # Create and launch the interface
     interface = create_interface()
@@ -930,6 +989,6 @@ if __name__ == "__main__":
         server_name="127.0.0.1",
         server_port=7861,
         share=False,
-        show_error=True,
-        enable_queue=True
+        show_error=True
+        # Removed deprecated enable_queue parameter
     )
