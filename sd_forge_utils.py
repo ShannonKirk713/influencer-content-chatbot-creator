@@ -1,3 +1,4 @@
+
 """
 Stable Diffusion Forge parameter recommendation utilities.
 Analyzes prompt complexity and suggests appropriate generation parameters.

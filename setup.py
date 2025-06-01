@@ -1,6 +1,7 @@
+
 #!/usr/bin/env python3
 """
-Setup script for Fanvue Chatbot
+Setup script for Influencer Chatbot
 Handles model downloading and environment setup
 """
 
@@ -167,7 +168,7 @@ def run_tests():
 
 def main():
     """Main setup function."""
-    parser = argparse.ArgumentParser(description="Setup Fanvue Chatbot")
+    parser = argparse.ArgumentParser(description="Setup Influencer Chatbot")
     parser.add_argument("--gpu", action="store_true", help="Install GPU support")
     parser.add_argument("--download-model", type=str, help="Download specific model")
     parser.add_argument("--skip-download", action="store_true", help="Skip model download")
@@ -175,7 +176,7 @@ def main():
     
     args = parser.parse_args()
     
-    print("🚀 Fanvue Chatbot Setup")
+    print("🚀 Influencer Chatbot Setup")
     print("=" * 50)
     
     # Check Python version
