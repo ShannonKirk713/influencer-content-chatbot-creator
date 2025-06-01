@@ -3,6 +3,7 @@
 Image Analysis Module for Fanvue Chatbot
 Uses BLIP model for image captioning and analysis
 Enhanced with better error handling, progress tracking, and detailed descriptions
+FIXED: Improved video prompt generation to actually analyze uploaded images
 """
 
 import logging
@@ -187,14 +188,14 @@ class ImageAnalyzer:
     
     def generate_video_prompt_from_image(self, image_analysis: Dict[str, Any], user_request: str = "") -> str:
         """
-        Generate a video prompt based on image analysis.
+        FIXED: Generate a video prompt based on actual image analysis.
         
         Args:
             image_analysis: Results from analyze_image()
             user_request: Additional user requirements
             
         Returns:
-            Formatted video prompt
+            Formatted video prompt based on actual image content
         """
         print("🎬 Generating video prompt from image analysis...")
         
@@ -204,60 +205,146 @@ class ImageAnalyzer:
         caption = image_analysis["caption"]
         detailed_desc = image_analysis["detailed_description"]
         
-        # Create a more sophisticated video prompt based on the image
-        video_prompt = f"""🖼️ IMAGE ANALYSIS: {caption}
+        # FIXED: Create a sophisticated video prompt that actually uses the image analysis
+        # Extract key elements from the image analysis
+        subjects = self._extract_subjects(caption, detailed_desc)
+        setting = self._extract_setting(caption, detailed_desc)
+        clothing = self._extract_clothing(caption, detailed_desc)
+        mood = self._extract_mood(caption, detailed_desc)
+        
+        # Create a comprehensive video prompt based on actual image content
+        video_prompt = f"""🖼️ **IMAGE ANALYSIS RESULTS:**
+- Caption: {caption}
+- Detailed Description: {detailed_desc}
 
-🎬 VIDEO CONCEPT: Transform this static scene into a dynamic, engaging video sequence
-- Base scene: {detailed_desc}
-- User request: {user_request if user_request else 'Create engaging motion and atmosphere from this image'}
+🎬 **VIDEO CONCEPT:** Transform this static scene into dynamic adult content
+Based on the analyzed image, create a sensual video sequence that brings this scene to life while maintaining the original aesthetic and mood.
 
-👥 SUBJECT(S): Based on the analyzed image, enhance with natural movements
-- Breathing and subtle body language
-- Natural facial expressions and micro-movements
-- Realistic interaction with environment
+👥 **SUBJECT(S):** {subjects}
+- Add natural breathing and subtle body movements
+- Enhance facial expressions with gentle transitions
+- Include realistic micro-movements and gestures
+- Maintain the original positioning while adding fluid motion
 - Age-appropriate adult content (18+)
 
-👗 CLOTHING: Maintain the styling from the image with added dynamics
-- Natural fabric movement and flow
-- Realistic response to lighting and movement
-- Enhanced textures and materials
+👗 **CLOTHING & STYLING:** {clothing}
+- Natural fabric movement and realistic physics
+- Subtle adjustments and repositioning
+- Enhanced textures responding to movement and lighting
+- Maintain the original style while adding dynamic elements
 
-🏞️ SETTING: Expand the environment for video
-- Enhanced atmospheric elements
-- Dynamic lighting variations
-- Environmental interactions (breeze, ambient sounds)
-- Depth and dimensionality
+🏞️ **SETTING & ENVIRONMENT:** {setting}
+- Enhance atmospheric elements from the original scene
+- Add environmental interactions (lighting changes, ambient effects)
+- Create depth and dimensionality beyond the static image
+- Maintain the original mood and aesthetic
 
-🎭 MOTION & ACTION: Natural movements that bring the scene to life
-- Gentle, flowing movements
-- Realistic physics and timing
-- Sensual but tasteful motion
-- Interactive elements with the environment
+🎭 **MOTION & ACTION:** Natural movements that enhance the scene
+- Gentle, flowing movements that complement the original pose
+- Realistic physics and natural timing
+- Sensual but tasteful motion appropriate for adult content
+- Interactive elements that build on the existing composition
+- {f"User-requested elements: {user_request}" if user_request else "Focus on natural, sensual movements"}
 
-📹 CAMERA WORK: Professional cinematography
-- Slow push-in for intimacy (0-3 seconds)
-- Gentle camera movements and subtle shifts
-- Focus pulls to highlight key elements
-- Smooth transitions between angles
-- Professional adult content aesthetic
+📹 **CAMERA WORK:** Professional cinematography
+- Slow push-in to create intimacy (0-3 seconds)
+- Gentle camera movements that enhance the original composition
+- Focus pulls to highlight key elements identified in the image
+- Smooth transitions between angles while respecting the original framing
+- Professional adult content aesthetic matching the image style
 
-🎨 STYLE & ATMOSPHERE: Enhanced visual appeal
-- Cinematic lighting with soft shadows
-- Atmospheric effects (steam, particles, soft focus)
-- Enhanced mood and sensuality
-- High-quality production values
-- Warm, inviting color palette
+🎨 **STYLE & ATMOSPHERE:** Enhanced visual appeal
+- Maintain and enhance the lighting style from the original image
+- {mood}
+- Atmospheric effects that complement the existing scene
+- Enhanced mood and sensuality building on the original
+- High-quality production values matching the image aesthetic
+- Color palette consistent with the analyzed image
 
-⏱️ DURATION NOTES: Optimal pacing for engagement
-- Opening: Establish scene and mood (2-3 seconds)
+⏱️ **DURATION NOTES:** Optimal pacing for engagement
+- Opening: Establish the enhanced scene (2-3 seconds)
 - Development: Build movement and interaction (6-8 seconds)
-- Peak: Highlight moment or climax (2-3 seconds)
-- Resolution: Gentle conclusion (2-3 seconds)
+- Peak: Highlight the most compelling moment (2-3 seconds)
+- Resolution: Gentle conclusion maintaining the mood (2-3 seconds)
 
-Total suggested duration: 12-17 seconds for maximum impact and engagement."""
+**Total suggested duration:** 12-17 seconds for maximum impact and engagement
 
-        print("✅ Video prompt generated successfully!")
+**TECHNICAL NOTES:**
+- Maintain aspect ratio and composition style from the original image
+- Ensure smooth transitions that feel natural and not jarring
+- Focus on quality over quantity of movement
+- Preserve the artistic integrity of the original image while adding motion"""
+
+        print("✅ Video prompt generated successfully based on actual image analysis!")
         return video_prompt
+    
+    def _extract_subjects(self, caption: str, description: str) -> str:
+        """Extract subject information from image analysis."""
+        text = f"{caption} {description}".lower()
+        
+        # Look for people/subjects
+        if "woman" in text or "girl" in text or "female" in text:
+            if "man" in text or "male" in text:
+                return "Multiple subjects including woman and man as described in the image"
+            else:
+                return "Woman as the primary subject, maintaining her appearance and positioning from the image"
+        elif "man" in text or "male" in text:
+            return "Man as the primary subject, maintaining his appearance and positioning from the image"
+        elif "person" in text or "people" in text:
+            return "Person(s) as described in the analyzed image, maintaining their original characteristics"
+        else:
+            return "Subject(s) as identified in the image analysis, maintaining original appearance and positioning"
+    
+    def _extract_setting(self, caption: str, description: str) -> str:
+        """Extract setting information from image analysis."""
+        text = f"{caption} {description}".lower()
+        
+        # Look for location indicators
+        locations = ["bedroom", "bathroom", "kitchen", "living room", "outdoor", "beach", "garden", "studio", "office", "hotel"]
+        for location in locations:
+            if location in text:
+                return f"The {location} setting as shown in the image, enhanced with dynamic elements"
+        
+        # Look for general environment clues
+        if "indoor" in text or "inside" in text:
+            return "Indoor setting as shown in the image, enhanced with atmospheric elements"
+        elif "outdoor" in text or "outside" in text:
+            return "Outdoor setting as shown in the image, enhanced with natural environmental effects"
+        else:
+            return "The setting as depicted in the analyzed image, enhanced with appropriate atmospheric elements"
+    
+    def _extract_clothing(self, caption: str, description: str) -> str:
+        """Extract clothing information from image analysis."""
+        text = f"{caption} {description}".lower()
+        
+        # Look for clothing items
+        clothing_items = ["dress", "lingerie", "underwear", "bra", "panties", "shirt", "blouse", "skirt", "pants", "jeans", "bikini", "swimsuit", "robe", "nightgown"]
+        found_items = [item for item in clothing_items if item in text]
+        
+        if found_items:
+            return f"The {', '.join(found_items)} as shown in the image, with natural fabric movement and realistic physics"
+        elif "naked" in text or "nude" in text or "topless" in text:
+            return "Minimal or no clothing as shown in the image, focusing on natural skin tones and body positioning"
+        else:
+            return "Clothing and styling as depicted in the analyzed image, enhanced with realistic movement"
+    
+    def _extract_mood(self, caption: str, description: str) -> str:
+        """Extract mood and atmosphere from image analysis."""
+        text = f"{caption} {description}".lower()
+        
+        # Look for mood indicators
+        if "romantic" in text or "intimate" in text:
+            return "Romantic and intimate atmosphere as captured in the original image"
+        elif "sensual" in text or "seductive" in text:
+            return "Sensual and seductive mood matching the original image"
+        elif "playful" in text or "fun" in text:
+            return "Playful and engaging atmosphere as shown in the image"
+        elif "elegant" in text or "sophisticated" in text:
+            return "Elegant and sophisticated mood consistent with the image"
+        elif "soft" in text or "gentle" in text:
+            return "Soft and gentle atmosphere as depicted in the original"
+        else:
+            return "Atmospheric mood consistent with the analyzed image, enhanced for video"
 
 # Global instance
 image_analyzer = ImageAnalyzer()

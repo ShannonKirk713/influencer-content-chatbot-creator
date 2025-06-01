@@ -41,8 +41,34 @@ class FanvueChatbot:
         # Create history folder
         os.makedirs(self.history_folder, exist_ok=True)
         
-        # Available models configuration
+        # Available models configuration - RESTORED UNCENSORED MODELS
         self.model_configs = {
+            # RESTORED: TheBloke uncensored models
+            "Luna-AI-Llama2-Uncensored": {
+                "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
+                "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
+                "template": "USER: {prompt}\nASSISTANT:",
+                "description": "Efficient 7B uncensored model, good for most adult content tasks"
+            },
+            "WizardLM-13B-Uncensored": {
+                "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
+                "filename": "WizardLM-13B-Uncensored.Q4_K_M.gguf",
+                "template": "You are a helpful AI assistant.\n\nUSER: {prompt}\nASSISTANT:",
+                "description": "Balanced 13B uncensored model, high quality responses"
+            },
+            "Wizard-Vicuna-30B-Uncensored": {
+                "repo_id": "TheBloke/Wizard-Vicuna-30B-Uncensored-GGUF",
+                "filename": "Wizard-Vicuna-30B-Uncensored.Q4_K_M.gguf", 
+                "template": "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions. USER: {prompt} ASSISTANT:",
+                "description": "High-end 30B uncensored model, best quality (requires powerful hardware)"
+            },
+            "Nous-Hermes-13B-Uncensored": {
+                "repo_id": "TheBloke/Nous-Hermes-13b-Chinese-GGUF",
+                "filename": "nous-hermes-13b-chinese.Q4_K_M.gguf",
+                "template": "### Instruction:\n{prompt}\n\n### Response:",
+                "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
+            },
+            # Modern models for comparison
             "llama-3.2-3b-instruct": {
                 "repo_id": "huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF",
                 "filename": "Llama-3.2-3B-Instruct-Q4_K_M.gguf",
@@ -131,6 +157,26 @@ Focus on natural movements and adult themes. Keep descriptions 80-100 words opti
                     "Generate a slow-motion silk fabric reveal sequence",
                     "Design a passionate embrace and kiss scene",
                     "Create a seductive getting-ready routine video"
+                ]
+            },
+            # RESTORED: Image to Video functionality
+            "image_to_video": {
+                "system": """You are an expert at converting static image descriptions into dynamic video prompts for adult content. Analyze the image description and add natural motion elements following Wan2.1 principles:
+
+🖼️ IMAGE ANALYSIS: [Analyze the provided image description]
+🎬 VIDEO CONCEPT: [How to bring the image to life]
+🎭 ADDED MOTION: [Natural movements and actions to add]
+📹 CAMERA DYNAMICS: [Camera movements to enhance the scene]
+🎨 ENHANCED ATMOSPHERE: [Additional atmospheric elements for video]
+⏱️ SEQUENCE FLOW: [How the video should progress]
+
+Transform static concepts into engaging motion while maintaining adult content focus.""",
+                "examples": [
+                    "Convert this image prompt into a video: 'Sensual portrait of a woman in lingerie'",
+                    "Transform a bedroom scene into dynamic video content",
+                    "Add motion to a boudoir photography concept",
+                    "Create video dynamics from a romantic portrait",
+                    "Convert static intimate scene to flowing video"
                 ]
             },
             "general_chat": {
@@ -309,12 +355,21 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             template_info = self.content_templates.get(content_type, self.content_templates["general_chat"])
             system_prompt = template_info["system"]
             
-            # Format the full prompt
+            # Format the full prompt based on model type
             model_config = self.model_configs[self.current_model]
-            full_prompt = model_config["template"].format(
-                system=system_prompt,
-                prompt=prompt
-            )
+            
+            # Handle different template formats
+            if "{system}" in model_config["template"]:
+                # Modern format with separate system and user prompts
+                full_prompt = model_config["template"].format(
+                    system=system_prompt,
+                    prompt=prompt
+                )
+            else:
+                # Legacy format - combine system and user prompt
+                full_prompt = model_config["template"].format(
+                    prompt=f"{system_prompt}\n\nUser Request: {prompt}"
+                )
             
             progress(0.3, "Generating response...")
             
@@ -324,7 +379,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\n\nUSER:", "\n\nASSISTANT:"],
                 echo=False
             )
             
@@ -541,6 +596,7 @@ def create_interface():
         .model-info { background: #f0f0f0; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
         .status-box { background: #e8f5e8; padding: 0.5rem; border-radius: 4px; }
         .error-box { background: #ffe8e8; padding: 0.5rem; border-radius: 4px; }
+        .warning-box { background: #fff3cd; border: 1px solid #ffeaa7; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
         """
     ) as interface:
         
@@ -548,6 +604,20 @@ def create_interface():
         <div class="main-header">
             <h1>🔥 Fanvue Chatbot - Advanced AI Assistant</h1>
             <p>Professional AI assistant for adult content creation with multiple models, image analysis, and advanced features</p>
+        </div>
+        """)
+        
+        # Warning notice
+        gr.HTML("""
+        <div class="warning-box">
+            <strong>⚠️ ADULT CONTENT WARNING</strong><br>
+            This application is designed for creating adult content (18+). By using this tool, you confirm that:
+            <ul>
+                <li>You are 18 years of age or older</li>
+                <li>You understand this tool generates adult content</li>
+                <li>You will use this responsibly and in compliance with applicable laws</li>
+                <li>You will respect platform guidelines and terms of service</li>
+            </ul>
         </div>
         """)
         
@@ -561,7 +631,7 @@ def create_interface():
                         model_dropdown = gr.Dropdown(
                             choices=list(chatbot.model_configs.keys()),
                             label="Select Model",
-                            value="llama-3.2-3b-instruct"
+                            value="Luna-AI-Llama2-Uncensored"
                         )
                         
                         gpu_layers_slider = gr.Slider(
@@ -596,11 +666,11 @@ def create_interface():
                     with gr.Column():
                         repo_id_input = gr.Textbox(
                             label="Hugging Face Repository ID",
-                            placeholder="e.g., microsoft/DialoGPT-medium",
+                            placeholder="e.g., TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                         )
                         filename_input = gr.Textbox(
                             label="Model Filename",
-                            placeholder="e.g., pytorch_model.bin",
+                            placeholder="e.g., luna-ai-llama2-uncensored.Q4_K_M.gguf",
                         )
                         download_btn = gr.Button("📥 Download Model", variant="secondary")
                     
@@ -633,7 +703,7 @@ def create_interface():
                 with gr.Row():
                     with gr.Column(scale=2):
                         content_type_dropdown = gr.Dropdown(
-                            choices=["image_prompt", "video_prompt", "general_chat"],
+                            choices=["image_prompt", "video_prompt", "image_to_video", "general_chat"],
                             value="image_prompt",
                             label="Content Type",
                         )
@@ -656,13 +726,13 @@ def create_interface():
                             example_btn = gr.Button("💡 Get Example", variant="secondary")
                         
                         generate_btn = gr.Button("🎨 Generate Content", variant="primary", size="lg")
-                    
+                        
                     with gr.Column(scale=3):
                         output_text = gr.Textbox(
                             label="Generated Content",
                             lines=20,
+                            max_lines=30,
                             interactive=False,
-                            show_copy_button=True
                         )
                 
                 # Wire up content generation events
@@ -681,13 +751,14 @@ def create_interface():
             
             # Image Analysis Tab
             with gr.Tab("🖼️ Image Analysis"):
-                gr.Markdown("## Analyze Images and Generate Descriptions")
+                gr.Markdown("## Analyze Images for Content Creation")
                 
                 with gr.Row():
                     with gr.Column():
                         image_input = gr.Image(
                             label="Upload Image",
-                            type="pil"
+                            type="pil",
+                            height=400
                         )
                         
                         caption_model_dropdown = gr.Dropdown(
@@ -696,39 +767,22 @@ def create_interface():
                             label="Caption Model",
                         )
                         
-                        analyze_btn = gr.Button("🔍 Analyze Image", variant="primary")
+                        analyze_btn = gr.Button("🔍 Analyze Image", variant="primary", size="lg")
                         
-                        # Video prompt generation from image
-                        gr.Markdown("### Generate Video Prompt from Image")
-                        video_request_input = gr.Textbox(
-                            label="Additional Requirements",
-                            placeholder="e.g., 'make it more romantic', 'add dancing'",
-                            lines=2,
-                        )
-                        video_prompt_btn = gr.Button("🎬 Generate Video Prompt", variant="secondary")
-                    
                     with gr.Column():
-                        image_caption = gr.Textbox(
+                        caption_output = gr.Textbox(
                             label="Image Caption",
                             lines=3,
                             interactive=False,
                         )
                         
-                        image_description = gr.Textbox(
+                        description_output = gr.Textbox(
                             label="Detailed Description",
                             lines=8,
                             interactive=False,
-                            show_copy_button=True,
-                        )
-                        
-                        video_prompt_output = gr.Textbox(
-                            label="Generated Video Prompt",
-                            lines=15,
-                            interactive=False,
-                            show_copy_button=True,
                         )
                 
-                # Model descriptions for image analysis
+                # Caption model descriptions
                 gr.Markdown("### Available Caption Models")
                 caption_info_html = "<div class='model-info'>"
                 for name, config in chatbot.caption_models.items():
@@ -740,106 +794,144 @@ def create_interface():
                 analyze_btn.click(
                     fn=analyze_uploaded_image,
                     inputs=[image_input, caption_model_dropdown],
-                    outputs=[image_caption, image_description],
+                    outputs=[caption_output, description_output],
                     show_progress=True
                 )
+            
+            # RESTORED: Image to Video Tab
+            with gr.Tab("🖼️➡️🎬 Image to Video"):
+                gr.Markdown("## Convert Images to Video Prompts")
+                gr.Markdown("Upload an image and get a detailed video prompt that brings it to life with motion and dynamics.")
                 
-                video_prompt_btn.click(
+                with gr.Row():
+                    with gr.Column():
+                        video_image_input = gr.Image(
+                            label="Upload Image for Video Conversion",
+                            type="pil",
+                            height=400
+                        )
+                        
+                        user_request_input = gr.Textbox(
+                            label="Additional Requirements (Optional)",
+                            placeholder="e.g., 'focus on facial expressions', 'add romantic lighting', 'include gentle movements'...",
+                            lines=3
+                        )
+                        
+                        video_generate_btn = gr.Button("🎬 Generate Video Prompt", variant="primary", size="lg")
+                        
+                    with gr.Column():
+                        video_prompt_output = gr.Textbox(
+                            label="Generated Video Prompt",
+                            lines=25,
+                            max_lines=35,
+                            interactive=False,
+                        )
+                
+                # Wire up image to video events
+                video_generate_btn.click(
                     fn=generate_video_prompt_from_image,
-                    inputs=[image_input, video_request_input],
+                    inputs=[video_image_input, user_request_input],
                     outputs=video_prompt_output,
                     show_progress=True
                 )
             
             # Prompt Analysis Tab
             with gr.Tab("⚙️ Prompt Analysis"):
-                gr.Markdown("## Analyze Prompt Complexity & SD Forge Parameters")
+                gr.Markdown("## Analyze Prompt Complexity & Get SD Forge Parameters")
+                gr.Markdown("Analyze your prompts and get optimized Stable Diffusion Forge parameters for best results.")
                 
                 with gr.Row():
                     with gr.Column():
                         analysis_prompt_input = gr.Textbox(
                             label="Prompt to Analyze",
-                            placeholder="Enter your image prompt here...",
-                            lines=6,
+                            placeholder="Enter your image generation prompt here...",
+                            lines=6
                         )
                         
-                        analyze_complexity_btn = gr.Button("🔍 Analyze Complexity", variant="primary")
-                    
+                        analyze_complexity_btn = gr.Button("🔍 Analyze Complexity", variant="primary", size="lg")
+                        
                     with gr.Column():
-                        complexity_analysis = gr.Textbox(
+                        complexity_output = gr.Textbox(
                             label="Complexity Analysis",
-                            lines=12,
+                            lines=15,
                             interactive=False,
                         )
                         
-                        sd_forge_params = gr.Textbox(
+                        parameters_output = gr.Textbox(
                             label="Recommended SD Forge Parameters",
-                            lines=12,
+                            lines=15,
                             interactive=False,
-                            show_copy_button=True,
                         )
                 
-                # Wire up prompt analysis
+                # Wire up prompt analysis events
                 analyze_complexity_btn.click(
                     fn=analyze_prompt_complexity,
                     inputs=analysis_prompt_input,
-                    outputs=[complexity_analysis, sd_forge_params],
+                    outputs=[complexity_output, parameters_output],
                     show_progress=True
                 )
             
-            # History & Settings Tab
-            with gr.Tab("📚 History & Settings"):
-                gr.Markdown("## Conversation History and Settings")
+            # Conversation Management Tab
+            with gr.Tab("💬 Conversation Management"):
+                gr.Markdown("## Manage Conversation History")
                 
                 with gr.Row():
                     with gr.Column():
-                        gr.Markdown("### Conversation Management")
+                        clear_btn = gr.Button("🗑️ Clear History", variant="secondary")
+                        export_btn = gr.Button("📥 Export History", variant="secondary")
                         
-                        with gr.Row():
-                            clear_btn = gr.Button("🗑️ Clear History", variant="secondary")
-                            export_btn = gr.Button("💾 Export History", variant="secondary")
-                        
-                        history_status = gr.Textbox(
+                    with gr.Column():
+                        management_status = gr.Textbox(
                             label="Status",
                             interactive=False,
-                            lines=2
+                            lines=3
                         )
-                    
-                    with gr.Column():
-                        gr.Markdown("### Application Info")
-                        gr.HTML("""
-                        <div class="model-info">
-                            <p><strong>Version:</strong> 2.0.0</p>
-                            <p><strong>Features:</strong> Multi-model support, Image analysis, SD Forge integration</p>
-                            <p><strong>Models:</strong> 7+ AI models available</p>
-                            <p><strong>Image Models:</strong> 7 caption models supported</p>
-                        </div>
-                        """)
                 
-                # Wire up history management
+                # Display current conversation count
+                def get_conversation_count():
+                    return f"Current conversations in memory: {len(chatbot.conversation_history)}"
+                
+                conversation_count = gr.Textbox(
+                    label="Conversation Statistics",
+                    value=get_conversation_count(),
+                    interactive=False
+                )
+                
+                # Wire up conversation management events
                 clear_btn.click(
                     fn=clear_conversation,
-                    outputs=history_status
+                    outputs=management_status
                 )
                 
                 export_btn.click(
                     fn=export_conversation,
-                    outputs=history_status
+                    outputs=management_status
                 )
+        
+        # Footer
+        gr.HTML("""
+        <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <p><strong>Fanvue Chatbot v2.1.0</strong> - Advanced AI Assistant for Adult Content Creation</p>
+            <p>⚠️ For adult content creators (18+) only. Use responsibly and in compliance with applicable laws.</p>
+        </div>
+        """)
     
     return interface
 
-# Create and launch the interface
 if __name__ == "__main__":
     print("🚀 Starting Fanvue Chatbot...")
+    
+    # Create and launch the interface
     interface = create_interface()
     
-    print("🌐 Launching interface...")
+    print("✅ Interface created successfully!")
+    print("🌐 Launching on http://localhost:7860")
+    
     interface.launch(
-        server_name="127.0.0.1",
-        server_port=7861,
+        server_name="0.0.0.0",
+        server_port=7860,
         share=False,
-        debug=False,
         show_error=True,
-        quiet=False
+        show_tips=True,
+        enable_queue=True
     )
