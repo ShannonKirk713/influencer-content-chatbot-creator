@@ -1,5 +1,5 @@
 
-# Fanvue Adult Content Creation Chatbot
+# Adult Content Creation Chatbot
 
 A sophisticated Gradio-based application for generating adult content prompts using uncensored AI models. This chatbot is specifically designed for content creators on platforms like Fanvue, OnlyFans, and other adult content platforms.
 
