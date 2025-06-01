@@ -625,6 +625,64 @@ def export_conversation() -> str:
         print(error_msg)
         return error_msg
 
+def get_gpu_status():
+    """Get GPU detection and status information."""
+    try:
+        import subprocess
+        import platform
+        
+        gpu_info = []
+        
+        # Try to get NVIDIA GPU info
+        try:
+            result = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total,memory.used,temperature.gpu', '--format=csv,noheader,nounits'], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                for i, line in enumerate(lines):
+                    if line.strip():
+                        parts = line.split(', ')
+                        if len(parts) >= 4:
+                            name, total_mem, used_mem, temp = parts[:4]
+                            gpu_info.append(f"🎮 GPU {i}: {name}")
+                            gpu_info.append(f"   Memory: {used_mem}MB / {total_mem}MB used")
+                            gpu_info.append(f"   Temperature: {temp}°C")
+                        else:
+                            gpu_info.append(f"🎮 GPU {i}: {line}")
+        except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+            pass
+        
+        # If no NVIDIA GPUs found, check for other GPUs
+        if not gpu_info:
+            try:
+                # Try lspci for Linux
+                if platform.system() == "Linux":
+                    result = subprocess.run(['lspci'], capture_output=True, text=True, timeout=5)
+                    if result.returncode == 0:
+                        lines = result.stdout.lower()
+                        if 'vga' in lines or 'display' in lines or '3d' in lines:
+                            gpu_info.append("🎮 Non-NVIDIA GPU detected (limited CUDA support)")
+                            for line in result.stdout.split('\n'):
+                                if any(term in line.lower() for term in ['vga', 'display', '3d controller']):
+                                    gpu_info.append(f"   {line.strip()}")
+            except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+                pass
+        
+        # System info
+        system_info = [
+            f"💻 System: {platform.system()} {platform.release()}",
+            f"🏗️ Architecture: {platform.machine()}",
+            f"🐍 Python: {platform.python_version()}"
+        ]
+        
+        if gpu_info:
+            return "\\n".join(system_info + [""] + gpu_info)
+        else:
+            return "\\n".join(system_info + ["", "⚠️ No CUDA-compatible GPUs detected", "   CPU-only mode will be used (slower performance)"])
+            
+    except Exception as e:
+        return f"❌ Error detecting GPU: {str(e)}"
+
 def create_interface():
     """Create and configure the Gradio interface."""
     
@@ -985,11 +1043,19 @@ if __name__ == "__main__":
     print("🚀 Starting Influencer Chatbot...")
     print("📍 Access the interface at: http://localhost:7861")
     
+    # Print GPU detection results
+    print("\n" + "="*60)
+    print("🎮 RTX GPU DETECTION RESULTS")
+    print("="*60)
+    print(get_gpu_status())
+    print("="*60)
+    
+    # Create and launch the interface
     interface = create_interface()
     interface.launch(
-        server_name="0.0.0.0",
+        server_name="127.0.0.1",
         server_port=7861,
         share=False,
-        show_error=True,
-        enable_queue=True
+        show_error=True
+        # Removed deprecated enable_queue parameter
     )
