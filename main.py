@@ -2,6 +2,7 @@
 """
 Fanvue Adult Content Creation Chatbot
 A Gradio-based application for generating adult content prompts using uncensored AI models.
+Enhanced with image upload and analysis functionality.
 """
 
 import gradio as gr
@@ -11,6 +12,10 @@ import time
 from typing import Dict, List, Tuple, Optional
 import logging
 from datetime import datetime
+from PIL import Image
+
+# Import image analyzer
+from image_analyzer import image_analyzer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -209,6 +214,64 @@ def generate_content(prompt: str, content_type: str, temperature: float) -> str:
     
     return chatbot.generate_response(prompt, content_type, temperature)
 
+def analyze_uploaded_image(image: Image.Image) -> Tuple[str, str]:
+    """
+    Analyze uploaded image and return caption and detailed description.
+    
+    Returns:
+        Tuple of (caption, detailed_description)
+    """
+    if image is None:
+        return "No image uploaded", ""
+    
+    try:
+        # Analyze the image
+        analysis = image_analyzer.analyze_image(image)
+        
+        if analysis["success"]:
+            caption = analysis["caption"]
+            detailed = analysis["detailed_description"]
+            return caption, detailed
+        else:
+            error_msg = f"❌ Error analyzing image: {analysis['error']}"
+            return error_msg, ""
+            
+    except Exception as e:
+        error_msg = f"❌ Error processing image: {str(e)}"
+        logger.error(error_msg)
+        return error_msg, ""
+
+def generate_video_from_image(image: Image.Image, user_request: str = "") -> str:
+    """
+    Generate video prompt from uploaded image.
+    
+    Args:
+        image: Uploaded PIL Image
+        user_request: Additional user requirements
+        
+    Returns:
+        Generated video prompt
+    """
+    if image is None:
+        return "❌ Please upload an image first."
+    
+    try:
+        # Analyze the image
+        analysis = image_analyzer.analyze_image(image)
+        
+        if not analysis["success"]:
+            return f"❌ Could not analyze image: {analysis['error']}"
+        
+        # Generate video prompt from analysis
+        video_prompt = image_analyzer.generate_video_prompt_from_image(analysis, user_request)
+        
+        return video_prompt
+        
+    except Exception as e:
+        error_msg = f"❌ Error generating video prompt: {str(e)}"
+        logger.error(error_msg)
+        return error_msg
+
 def get_example(content_type: str) -> str:
     """Get example prompt for the selected content type."""
     return chatbot.get_example_prompt(content_type)
@@ -257,6 +320,13 @@ def create_interface():
             padding: 10px;
             margin: 5px 0;
         }
+        .image-analysis-box {
+            background-color: #f0f8ff;
+            border: 1px solid #b0d4f1;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+        }
         """
     ) as interface:
         
@@ -267,6 +337,7 @@ def create_interface():
         **Professional AI Assistant for Adult Content Creators**
         
         This application uses uncensored AI models to help create high-quality adult content prompts for Fanvue creators.
+        Now enhanced with **image upload and analysis** functionality!
         """)
         
         # Warning notice
@@ -322,6 +393,56 @@ def create_interface():
                             max_lines=30
                         )
             
+            # Image to Video Tab (NEW)
+            with gr.Tab("🖼️➡️🎬 Image to Video"):
+                gr.Markdown("""
+                ## Upload Image and Generate Video Prompts
+                Upload an image and automatically generate video prompts based on AI analysis of the image content.
+                """)
+                
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        # Image upload
+                        image_input = gr.Image(
+                            label="Upload Image",
+                            type="pil",
+                            height=400
+                        )
+                        
+                        # Additional user request
+                        user_request = gr.Textbox(
+                            label="Additional Requirements (Optional)",
+                            placeholder="e.g., 'focus on sensual movements', 'add romantic lighting'...",
+                            lines=3
+                        )
+                        
+                        with gr.Row():
+                            analyze_btn = gr.Button("🔍 Analyze Image", variant="secondary")
+                            generate_video_btn = gr.Button("🎬 Generate Video Prompt", variant="primary")
+                    
+                    with gr.Column(scale=2):
+                        # Image analysis results
+                        gr.HTML('<div class="image-analysis-box"><strong>📊 Image Analysis Results</strong></div>')
+                        
+                        image_caption = gr.Textbox(
+                            label="Image Caption",
+                            lines=2,
+                            interactive=False
+                        )
+                        
+                        image_description = gr.Textbox(
+                            label="Detailed Description",
+                            lines=4,
+                            interactive=False
+                        )
+                        
+                        # Generated video prompt
+                        video_prompt_output = gr.Textbox(
+                            label="Generated Video Prompt",
+                            lines=15,
+                            max_lines=25
+                        )
+            
             # Model Management Tab
             with gr.Tab("🤖 Model Settings"):
                 gr.Markdown("## Model Configuration")
@@ -362,6 +483,15 @@ def create_interface():
                                 <small>Repository: {config['repo']}</small>
                             </div>
                             """)
+                        
+                        gr.Markdown("### Image Analysis")
+                        gr.HTML("""
+                        <div class="model-info">
+                            <strong>BLIP Image Captioning</strong><br>
+                            Automatically loaded for image analysis<br>
+                            <small>Model: Salesforce/blip-image-captioning-base</small>
+                        </div>
+                        """)
             
             # History Tab
             with gr.Tab("📚 Conversation History"):
@@ -378,7 +508,7 @@ def create_interface():
                 ### Usage Tips:
                 - **Image Prompts**: Generate detailed descriptions for static adult content
                 - **Video Prompts**: Create motion-focused prompts for video content
-                - **Image to Video**: Convert static concepts into dynamic video ideas
+                - **Image to Video**: Upload images and convert them into dynamic video ideas
                 - **General Chat**: Get advice and discuss adult content creation strategies
                 """)
             
@@ -399,6 +529,13 @@ def create_interface():
                 - Adjust creativity slider if needed
                 - Click "Generate Content"
                 
+                ### 3. NEW: Image to Video Feature
+                - Go to "Image to Video" tab
+                - Upload an image (JPG, PNG, etc.)
+                - Click "Analyze Image" to see AI description
+                - Add optional requirements
+                - Click "Generate Video Prompt" for motion-based content
+                
                 ### Content Types Explained:
                 
                 **📸 Image Prompts**
@@ -411,8 +548,10 @@ def create_interface():
                 - Based on Wan2.1 framework principles
                 - Includes camera work, movements, and pacing
                 
-                **🖼️➡️🎬 Image to Video**
-                - Converts static image concepts into dynamic video prompts
+                **🖼️➡️🎬 Image to Video (NEW)**
+                - Upload any image for AI analysis
+                - Automatically generates detailed descriptions
+                - Converts static concepts into dynamic video prompts
                 - Adds natural motion and camera dynamics
                 - Great for expanding existing content ideas
                 
@@ -430,12 +569,18 @@ def create_interface():
                 "Design a slow-motion intimate dance sequence"
                 
                 **Image to Video Example:**
-                "Turn this lingerie photo concept into a video: [describe image]"
+                Upload a photo → AI analyzes it → Generates video prompt automatically
                 
                 ### Technical Requirements:
                 - **RAM**: 8GB+ (16GB+ recommended)
                 - **GPU**: Optional but recommended for faster generation
                 - **Storage**: 5-20GB for model files
+                - **Image Analysis**: Automatic BLIP model download (~1GB)
+                
+                ### New Dependencies:
+                - **transformers**: For BLIP image analysis
+                - **torch**: Deep learning backend
+                - **Pillow**: Image processing
                 
                 ### Safety and Legal Notes:
                 - This tool is for creating legal adult content (18+)
@@ -462,12 +607,27 @@ def create_interface():
             outputs=[output]
         )
         
+        # Image analysis event handlers
+        analyze_btn.click(
+            fn=analyze_uploaded_image,
+            inputs=[image_input],
+            outputs=[image_caption, image_description]
+        )
+        
+        generate_video_btn.click(
+            fn=generate_video_from_image,
+            inputs=[image_input, user_request],
+            outputs=[video_prompt_output]
+        )
+        
+        # Model management event handlers
         load_btn.click(
             fn=load_model_interface,
             inputs=[model_choice, gpu_layers],
             outputs=[model_status]
         )
         
+        # History event handlers
         export_btn.click(
             fn=export_conversation,
             outputs=[history_status]
