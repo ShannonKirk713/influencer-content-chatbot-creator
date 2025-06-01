@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Fanvue Chatbot - Advanced AI Assistant for Adult Content Creation
-Enhanced with multiple models, image analysis, comprehensive content generation, and RTX GPU detection
+Influencer Chatbot - Advanced AI Assistant for Adult Content Creation
+Enhanced with multiple models, image analysis, and comprehensive content generation
 """
 
 import gradio as gr
@@ -16,7 +16,6 @@ import random
 # Import our modules
 from image_analyzer import image_analyzer
 from sd_forge_utils import PromptComplexityAnalyzer, SDForgeParams
-from gpu_utils import RTXGPUDetector, get_gpu_recommendations
 
 # Configure logging
 logging.basicConfig(
@@ -29,8 +28,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class FanvueChatbot:
-    """Main chatbot class with model management, content generation, and GPU detection."""
+class InfluencerChatbot:
+    """Main chatbot class with model management and content generation."""
     
     def __init__(self):
         self.llm = None
@@ -39,82 +38,78 @@ class FanvueChatbot:
         self.history_folder = "conversation_logs"
         self.complexity_analyzer = PromptComplexityAnalyzer()
         
-        # Initialize GPU detection system
-        self.gpu_detector = RTXGPUDetector()
-        self.gpu_info = self.gpu_detector.get_optimal_settings()
-        
         # Create history folder
         os.makedirs(self.history_folder, exist_ok=True)
         
-        # Available models configuration - RESTORED UNCENSORED MODELS
+        # Available models configuration - ALL THEBLOKE MODELS
         self.model_configs = {
-            # RESTORED: TheBloke uncensored models
+            # TheBloke uncensored models
             "Luna-AI-Llama2-Uncensored": {
                 "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                 "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                "template": "USER: {prompt}\\nASSISTANT:",
+                "template": "USER: {prompt}\nASSISTANT:",
                 "description": "Efficient 7B uncensored model, good for most adult content tasks"
             },
             "WizardLM-13B-Uncensored": {
                 "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
-                "filename": "WizardLM-13B-Uncensored.Q4_K_M.gguf",
-                "template": "You are a helpful AI assistant.\\n\\nUSER: {prompt}\\nASSISTANT:",
+                "filename": "wizardlm-13b-uncensored.Q4_K_M.gguf",
+                "template": "You are a helpful AI assistant.\n\nUSER: {prompt}\nASSISTANT:",
                 "description": "Balanced 13B uncensored model, high quality responses"
             },
             "Wizard-Vicuna-30B-Uncensored": {
                 "repo_id": "TheBloke/Wizard-Vicuna-30B-Uncensored-GGUF",
-                "filename": "Wizard-Vicuna-30B-Uncensored.Q4_K_M.gguf", 
+                "filename": "wizard-vicuna-30b-uncensored.Q4_K_M.gguf", 
                 "template": "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions. USER: {prompt} ASSISTANT:",
                 "description": "High-end 30B uncensored model, best quality (requires powerful hardware)"
             },
             "Nous-Hermes-13B-Uncensored": {
-                "repo_id": "TheBloke/Nous-Hermes-13b-Chinese-GGUF",
-                "filename": "nous-hermes-13b-chinese.Q4_K_M.gguf",
-                "template": "### Instruction:\\n{prompt}\\n\\n### Response:",
+                "repo_id": "TheBloke/Nous-Hermes-13b-GGUF",
+                "filename": "nous-hermes-13b.Q4_K_M.gguf",
+                "template": "### Instruction:\n{prompt}\n\n### Response:",
                 "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
             },
-            # Modern models for comparison
-            "llama-3.2-3b-instruct": {
-                "repo_id": "huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF",
-                "filename": "Llama-3.2-3B-Instruct-Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+            # Modern TheBloke models
+            "Llama-3.2-3B-Instruct": {
+                "repo_id": "TheBloke/Llama-3.2-3B-Instruct-GGUF",
+                "filename": "llama-3.2-3b-instruct-q4_k_m.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
                 "description": "Fast 3B model, good for quick responses"
             },
-            "llama-3.1-8b-instruct": {
-                "repo_id": "huggingface.co/bartowski/Llama-3.1-8B-Instruct-GGUF",
-                "filename": "Llama-3.1-8B-Instruct-Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+            "Llama-3.1-8B-Instruct": {
+                "repo_id": "TheBloke/Llama-3.1-8B-Instruct-GGUF",
+                "filename": "llama-3.1-8b-instruct-q4_k_m.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
                 "description": "Balanced 8B model, good quality and speed"
             },
-            "qwen-2.5-14b-instruct": {
-                "repo_id": "huggingface.co/bartowski/Qwen2.5-14B-Instruct-GGUF",
-                "filename": "Qwen2.5-14B-Instruct-Q4_K_M.gguf",
-                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
+            "Qwen2.5-14B-Instruct": {
+                "repo_id": "TheBloke/Qwen2.5-14B-Instruct-GGUF",
+                "filename": "qwen2.5-14b-instruct-q4_k_m.gguf",
+                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
                 "description": "High-quality 14B model, excellent for detailed content"
             },
-            "llama-3.1-70b-instruct": {
-                "repo_id": "huggingface.co/bartowski/Llama-3.1-70B-Instruct-GGUF",
-                "filename": "Llama-3.1-70B-Instruct-IQ2_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+            "Llama-3.1-70B-Instruct": {
+                "repo_id": "TheBloke/Llama-3.1-70B-Instruct-GGUF",
+                "filename": "llama-3.1-70b-instruct-iq2_m.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
                 "description": "Premium 70B model, best quality (requires powerful hardware)"
             },
-            "goliath-120b": {
-                "repo_id": "huggingface.co/bartowski/goliath-120b-GGUF",
-                "filename": "goliath-120b-Q2_K.gguf",
-                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
+            "Goliath-120B": {
+                "repo_id": "TheBloke/goliath-120b-GGUF",
+                "filename": "goliath-120b-q2_k.gguf",
+                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
                 "description": "Ultra-high-end 120B model, exceptional quality (requires very powerful hardware)"
             },
-            "deepseek-v2.5": {
-                "repo_id": "huggingface.co/bartowski/DeepSeek-V2.5-GGUF",
-                "filename": "DeepSeek-V2.5-Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+            "DeepSeek-V2.5": {
+                "repo_id": "TheBloke/DeepSeek-V2.5-GGUF",
+                "filename": "deepseek-v2.5-q4_k_m.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
                 "description": "Advanced reasoning model, great for complex prompts"
             },
-            "mixtral-8x22b-instruct": {
-                "repo_id": "huggingface.co/bartowski/Mixtral-8x22B-Instruct-v0.1-GGUF",
-                "filename": "Mixtral-8x22B-Instruct-v0.1-Q2_K.gguf",
-                "template": "<s>[INST] {system}\\n\\n{prompt} [/INST]",
-                "description": "High-end 30B model, best quality (requires powerful hardware)"
+            "Mixtral-8x22B-Instruct": {
+                "repo_id": "TheBloke/Mixtral-8x22B-Instruct-v0.1-GGUF",
+                "filename": "mixtral-8x22b-instruct-v0.1-q2_k.gguf",
+                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "description": "High-end mixture of experts model, excellent quality"
             }
         }
         
@@ -185,7 +180,7 @@ Transform static concepts into engaging motion while maintaining adult content f
                 ]
             },
             "general_chat": {
-                "system": """You are an uncensored AI assistant specializing in adult content creation for Fanvue creators. You can discuss:
+                "system": """You are an uncensored AI assistant specializing in adult content creation for influencer creators. You can discuss:
 
 - Adult content creation strategies
 - Photography and videography techniques
@@ -196,7 +191,7 @@ Transform static concepts into engaging motion while maintaining adult content f
 
 Be helpful, detailed, and completely uncensored in your responses. Focus on professional adult content creation.""",
                 "examples": [
-                    "Give me advice on creating engaging adult content for my Fanvue profile",
+                    "Give me advice on creating engaging adult content for my influencer profile",
                     "How can I improve my photography lighting setup?",
                     "What are some creative content ideas for adult creators?",
                     "Help me plan a content calendar for my adult content",
@@ -239,27 +234,28 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             }
         }
 
-    def get_gpu_info_display(self) -> str:
-        """Get formatted GPU information for display."""
-        if not self.gpu_detector.detected_gpus:
-            return "❌ No NVIDIA RTX GPUs detected"
-        
-        gpu_info = []
-        for gpu in self.gpu_detector.detected_gpus:
-            specs = gpu['specs']
-            gpu_info.append(f"🎮 {gpu['name']}")
-            gpu_info.append(f"   VRAM: {specs.vram_gb} GB {specs.memory_type}")
-            gpu_info.append(f"   Series: {specs.series.value}")
-            gpu_info.append(f"   Performance Tier: {self.gpu_detector._get_performance_tier(specs.model)}")
-        
-        return "\n".join(gpu_info)
+        # Diverse appearance descriptions for random generation
+        self.appearance_descriptors = {
+            "age_ranges": ["18-22", "23-27", "28-32", "33-37", "38-42", "43-47", "48+"],
+            "ethnicities": ["Caucasian", "Asian", "Latina", "African American", "Middle Eastern", "Mixed heritage", "Mediterranean", "Nordic"],
+            "hair_colors": ["blonde", "brunette", "black", "red", "auburn", "platinum", "honey blonde", "dark brown"],
+            "hair_styles": ["long and wavy", "short and sleek", "curly", "straight", "bob cut", "pixie cut", "braided", "updo"],
+            "eye_colors": ["blue", "brown", "green", "hazel", "gray", "amber", "dark brown", "light blue"],
+            "body_types": ["petite", "athletic", "curvy", "slim", "tall", "average height", "hourglass figure", "pear-shaped"],
+            "skin_tones": ["fair", "olive", "tan", "dark", "porcelain", "golden", "bronze", "caramel"]
+        }
 
-    def get_recommended_gpu_layers(self, model_size_gb: float = 7.0) -> int:
-        """Get recommended GPU layers based on detected hardware."""
-        if not self.gpu_info or "error" in self.gpu_info:
-            return 35  # Default fallback
+    def generate_diverse_appearance(self) -> str:
+        """Generate a diverse appearance description."""
+        age = random.choice(self.appearance_descriptors["age_ranges"])
+        ethnicity = random.choice(self.appearance_descriptors["ethnicities"])
+        hair_color = random.choice(self.appearance_descriptors["hair_colors"])
+        hair_style = random.choice(self.appearance_descriptors["hair_styles"])
+        eye_color = random.choice(self.appearance_descriptors["eye_colors"])
+        body_type = random.choice(self.appearance_descriptors["body_types"])
+        skin_tone = random.choice(self.appearance_descriptors["skin_tones"])
         
-        return self.gpu_info.get("recommended_layers", 35)
+        return f"{age} year old {ethnicity} woman with {hair_color}, {hair_style} hair, {eye_color} eyes, {body_type} build, and {skin_tone} skin"
 
     def save_conversation_to_txt(self, prompt: str, response: str, content_type: str):
         """Save conversation entry to timestamped txt file."""
@@ -284,8 +280,8 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
         except Exception as e:
             print(f"❌ Error saving conversation: {e}")
 
-    def load_model(self, model_name: str, gpu_layers: int = None, progress=gr.Progress()) -> str:
-        """Load the specified model with GPU-optimized settings."""
+    def load_model(self, model_name: str, gpu_layers: int = 35, progress=gr.Progress()) -> str:
+        """Load the specified model."""
         try:
             print(f"🔄 Loading model: {model_name}")
             progress(0.1, f"Initializing {model_name}...")
@@ -305,10 +301,6 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             
             model_config = self.model_configs[model_name]
             progress(0.3, f"Loading {model_name} from {model_config['repo_id']}...")
-            
-            # Use GPU-optimized layers if not specified
-            if gpu_layers is None:
-                gpu_layers = self.get_recommended_gpu_layers()
             
             # Load the model
             self.llm = Llama.from_pretrained(
@@ -358,7 +350,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 self.model_configs[model_name] = {
                     "repo_id": repo_id,
                     "filename": filename,
-                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
                     "description": f"Custom model from {repo_id}"
                 }
             
@@ -373,7 +365,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             print(f"❌ {error_msg}")
             return f"❌ {error_msg}"
 
-    def generate_response(self, prompt: str, content_type: str, temperature: float = 0.7, progress=gr.Progress()) -> str:
+    def generate_response(self, prompt: str, content_type: str, main_influencer: str, temperature: float = 0.7, progress=gr.Progress()) -> str:
         """Generate response using the loaded model."""
         if not self.llm:
             return "❌ No model loaded. Please load a model first."
@@ -386,6 +378,17 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             template_info = self.content_templates.get(content_type, self.content_templates["general_chat"])
             system_prompt = template_info["system"]
             
+            # Handle Main Influencer description
+            final_prompt = prompt
+            if main_influencer.strip():
+                # If Main Influencer is provided, incorporate it into the prompt
+                final_prompt = f"Main Influencer: {main_influencer.strip()}\n\nRequest: {prompt}"
+            else:
+                # If Main Influencer is empty, generate diverse appearance for image/video prompts
+                if content_type in ["image_prompt", "video_prompt", "image_to_video"]:
+                    diverse_appearance = self.generate_diverse_appearance()
+                    final_prompt = f"Subject appearance: {diverse_appearance}\n\nRequest: {prompt}"
+            
             # Format the full prompt based on model type
             model_config = self.model_configs[self.current_model]
             
@@ -394,12 +397,12 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 # Modern format with separate system and user prompts
                 full_prompt = model_config["template"].format(
                     system=system_prompt,
-                    prompt=prompt
+                    prompt=final_prompt
                 )
             else:
                 # Legacy format - combine system and user prompt
                 full_prompt = model_config["template"].format(
-                    prompt=f"{system_prompt}\\n\\nUser Request: {prompt}"
+                    prompt=f"{system_prompt}\n\nUser Request: {final_prompt}"
                 )
             
             progress(0.3, "Generating response...")
@@ -410,7 +413,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\n\\nUSER:", "\\n\\nASSISTANT:"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\n\nUSER:", "\n\nASSISTANT:"],
                 echo=False
             )
             
@@ -422,6 +425,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             conversation_entry = {
                 "timestamp": datetime.now().isoformat(),
                 "prompt": prompt,
+                "main_influencer": main_influencer,
                 "response": generated_text,
                 "content_type": content_type,
                 "model": self.current_model,
@@ -430,7 +434,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             self.conversation_history.append(conversation_entry)
             
             # Save to text file
-            self.save_conversation_to_txt(prompt, generated_text, content_type)
+            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\n\n{prompt}", generated_text, content_type)
             
             progress(1.0, "Response generated!")
             print(f"✅ Response generated successfully ({len(generated_text)} characters)")
@@ -450,7 +454,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
         return random.choice(examples)
 
 # Initialize chatbot
-chatbot = FanvueChatbot()
+chatbot = InfluencerChatbot()
 
 def load_model_interface(model_name: str, gpu_layers: int, progress=gr.Progress()) -> str:
     """Interface function for loading models."""
@@ -462,12 +466,12 @@ def download_model_interface(repo_id: str, filename: str, progress=gr.Progress()
         return "❌ Please provide both repository ID and filename"
     return chatbot.download_additional_model(repo_id, filename, progress)
 
-def generate_content(prompt: str, content_type: str, temperature: float, progress=gr.Progress()) -> str:
+def generate_content(prompt: str, content_type: str, main_influencer: str, temperature: float, progress=gr.Progress()) -> str:
     """Interface function for generating content."""
     if not prompt.strip():
         return "Please enter a prompt."
     
-    return chatbot.generate_response(prompt, content_type, temperature, progress)
+    return chatbot.generate_response(prompt, content_type, main_influencer, temperature, progress)
 
 def analyze_uploaded_image(image: Image.Image, caption_model: str, progress=gr.Progress()) -> Tuple[str, str]:
     """
@@ -532,8 +536,8 @@ def generate_video_prompt_from_image(image: Image.Image, user_request: str, prog
         print(error_msg)
         return error_msg
 
-def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
-    """Analyze prompt complexity and suggest SD Forge parameters."""
+def analyze_prompt_complexity(prompt: str, sampler: str, scheduler: str, distilled_cfg: float) -> Tuple[str, str]:
+    """Analyze prompt complexity and suggest SD Forge parameters with flexible options."""
     if not prompt.strip():
         return "Please enter a prompt to analyze.", ""
     
@@ -541,8 +545,13 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         # Analyze complexity
         analysis = chatbot.complexity_analyzer.analyze_prompt_complexity(prompt)
         
-        # Get SD Forge recommendations
+        # Get SD Forge recommendations with custom parameters
         sd_params = chatbot.complexity_analyzer.recommend_sd_forge_params(prompt)
+        
+        # Override with user selections
+        sd_params.sampler = sampler
+        sd_params.schedule_type = scheduler
+        sd_params.distilled_cfg_scale = distilled_cfg
         
         # Format analysis results
         analysis_text = f"""🔍 **Prompt Complexity Analysis**
@@ -560,9 +569,9 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\\n"
+                analysis_text += f"- {category.title()}: {count} terms\n"
         
-        # Format SD Forge parameters in Flux format
+        # Format SD Forge parameters in Flux format with user selections
         params_text = f"""⚙️ **Recommended Stable Diffusion Forge Parameters (Flux Format)**
 
 **Parameters String:**
@@ -570,14 +579,14 @@ Steps: {sd_params.steps}, Sampler: {sd_params.sampler}, Schedule type: {sd_param
 
 **Individual Settings:**
 - Steps: {sd_params.steps}
-- Sampler: {sd_params.sampler}
-- Schedule Type: {sd_params.schedule_type}
+- Sampler: {sd_params.sampler} (user selected)
+- Schedule Type: {sd_params.schedule_type} (user selected)
 - CFG Scale: {sd_params.cfg_scale} (always 1 for Flux)
-- Distilled CFG Scale: {sd_params.distilled_cfg_scale}
+- Distilled CFG Scale: {sd_params.distilled_cfg_scale} (user selected)
 - Seed: {sd_params.seed} (use -1 for random)
 - Size: {sd_params.width}x{sd_params.height}
 
-**Explanation:** Based on your prompt's complexity level ({analysis['complexity_level']}), these parameters are optimized for Flux model generation with CFG scale fixed at 1."""
+**Explanation:** Based on your prompt's complexity level ({analysis['complexity_level']}), these parameters are optimized for Flux model generation with your custom sampler, scheduler, and distilled CFG settings."""
         
         return analysis_text, params_text
         
@@ -601,7 +610,7 @@ def export_conversation() -> str:
         return "No conversation history to export."
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"fanvue_conversation_{timestamp}.json"
+    filename = f"influencer_conversation_{timestamp}.json"
     
     try:
         with open(filename, 'w') as f:
@@ -616,22 +625,17 @@ def export_conversation() -> str:
         print(error_msg)
         return error_msg
 
-def get_gpu_status() -> str:
-    """Get current GPU status and recommendations."""
-    return chatbot.get_gpu_info_display()
-
 def create_interface():
     """Create and configure the Gradio interface."""
     
     with gr.Blocks(
-        title="Fanvue Chatbot - Advanced AI Assistant",
+        title="Influencer Chatbot - Advanced AI Assistant",
         theme=gr.themes.Soft(),
         css="""
         .main-header { text-align: center; margin-bottom: 2rem; }
         .model-info { background: #f0f0f0; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
         .status-box { background: #e8f5e8; padding: 0.5rem; border-radius: 4px; }
         .error-box { background: #ffe8e8; padding: 0.5rem; border-radius: 4px; }
-        .gpu-info { background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
         .warning-box { 
             background: #fff3cd; 
             border: 1px solid #ffeaa7; 
@@ -651,11 +655,6 @@ def create_interface():
         .dark .model-info {
             background: #374151 !important;
             color: #f9fafb !important;
-        }
-        
-        .dark .gpu-info {
-            background: #1e3a8a !important;
-            color: #dbeafe !important;
         }
         
         /* Fix dropdown and text visibility in dark theme */
@@ -681,314 +680,317 @@ def create_interface():
         
         gr.HTML("""
         <div class="main-header">
-            <h1>🔥 Fanvue Chatbot - Advanced AI Assistant</h1>
-            <p>Professional AI assistant for adult content creation with multiple models, image analysis, RTX GPU detection, and advanced features</p>
+            <h1>🔥 Influencer Chatbot - Advanced AI Assistant</h1>
+            <p>Professional AI assistant for adult content creation with multiple models, image analysis, and comprehensive content generation</p>
         </div>
         """)
         
-        # Warning notice
-        gr.HTML("""
-        <div class="warning-box">
-            <strong>⚠️ ADULT CONTENT WARNING</strong><br>
-            This application is designed for creating adult content (18+). By using this tool, you confirm that:
-            <ul>
-                <li>You are 18 years of age or older</li>
-                <li>You understand this tool generates adult content</li>
-                <li>You will use this responsibly and in compliance with applicable laws</li>
-                <li>You will respect platform guidelines and terms of service</li>
-            </ul>
-        </div>
-        """)
-        
-        with gr.Tabs():
-            # Model Management Tab
-            with gr.Tab("🤖 Model Management"):
-                gr.Markdown("## Load and Manage AI Models")
-                
-                # GPU Information Section
-                gr.Markdown("### 🎮 GPU Detection & Optimization")
-                gpu_status_display = gr.Textbox(
-                    label="Detected RTX GPUs",
-                    value=get_gpu_status(),
-                    interactive=False,
-                    lines=6
-                )
-                
+        with gr.Tabs() as tabs:
+            # Main Content Generation Tab
+            with gr.Tab("💬 Content Generation", id="main"):
                 with gr.Row():
-                    with gr.Column():
-                        model_dropdown = gr.Dropdown(
-                            choices=list(chatbot.model_configs.keys()),
-                            label="Select Model",
-                            value="Luna-AI-Llama2-Uncensored"
+                    with gr.Column(scale=2):
+                        # Main Influencer input box
+                        main_influencer_input = gr.Textbox(
+                            label="👑 Main Influencer Description (Optional)",
+                            placeholder="Describe the main influencer/subject for this content (e.g., '25-year-old blonde fitness model with blue eyes and athletic build'). Leave empty for diverse random generation.",
+                            lines=2,
+                            info="This will be used as the primary subject for all generated content. If left empty, diverse appearances will be randomly generated."
                         )
                         
-                        # Set default GPU layers based on detected hardware
-                        default_gpu_layers = chatbot.get_recommended_gpu_layers()
-                        gpu_layers_slider = gr.Slider(
-                            minimum=0,
-                            maximum=80,
-                            value=default_gpu_layers,
-                            step=1,
-                            label=f"GPU Layers (Recommended: {default_gpu_layers})",
-                        )
-                        
-                        load_btn = gr.Button("🚀 Load Model", variant="primary", size="lg")
-                        
-                    with gr.Column():
-                        model_status = gr.Textbox(
-                            label="Model Status",
-                            value="No model loaded",
-                            interactive=False,
-                            lines=3
-                        )
-                
-                # Model descriptions
-                gr.Markdown("### Available Models")
-                model_info_html = "<div class='model-info'>"
-                for name, config in chatbot.model_configs.items():
-                    model_info_html += f"<p><strong>{name}:</strong> {config['description']}</p>"
-                model_info_html += "</div>"
-                gr.HTML(model_info_html)
-                
-                # Additional model download section
-                gr.Markdown("## Download Additional Models")
-                with gr.Row():
-                    with gr.Column():
-                        repo_id_input = gr.Textbox(
-                            label="Hugging Face Repository ID",
-                            placeholder="e.g., TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
-                        )
-                        filename_input = gr.Textbox(
-                            label="Model Filename",
-                            placeholder="e.g., luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                        )
-                        download_btn = gr.Button("📥 Download Model", variant="secondary")
-                    
-                    with gr.Column():
-                        download_status = gr.Textbox(
-                            label="Download Status",
-                            interactive=False,
-                            lines=3
-                        )
-                
-                # Wire up model management events
-                load_btn.click(
-                    fn=load_model_interface,
-                    inputs=[model_dropdown, gpu_layers_slider],
-                    outputs=model_status,
-                    show_progress=True
-                )
-                
-                download_btn.click(
-                    fn=download_model_interface,
-                    inputs=[repo_id_input, filename_input],
-                    outputs=download_status,
-                    show_progress=True
-                )
-            
-            # Content Generation Tab
-            with gr.Tab("✨ Content Generation"):
-                gr.Markdown("## Generate Adult Content Prompts")
-                
-                with gr.Row():
-                    with gr.Column():
-                        content_type_dropdown = gr.Dropdown(
-                            choices=["image_prompt", "video_prompt", "image_to_video", "general_chat"],
-                            label="Content Type",
-                            value="image_prompt"
-                        )
-                        
-                        user_prompt = gr.Textbox(
-                            label="Your Prompt",
-                            placeholder="Describe what you want to create...",
-                            lines=3
-                        )
-                        
-                        temperature_slider = gr.Slider(
-                            minimum=0.1,
-                            maximum=1.0,
-                            value=0.7,
-                            step=0.1,
-                            label="Temperature (Creativity)"
+                        prompt_input = gr.Textbox(
+                            label="✍️ Your Prompt",
+                            placeholder="Enter your content request here...",
+                            lines=4
                         )
                         
                         with gr.Row():
-                            example_btn = gr.Button("📝 Get Example", variant="secondary")
-                            generate_btn = gr.Button("🚀 Generate Content", variant="primary")
+                            content_type = gr.Dropdown(
+                                choices=["image_prompt", "video_prompt", "image_to_video", "general_chat"],
+                                value="image_prompt",
+                                label="📝 Content Type"
+                            )
+                            
+                            temperature = gr.Slider(
+                                minimum=0.1,
+                                maximum=1.0,
+                                value=0.7,
+                                step=0.1,
+                                label="🌡️ Creativity (Temperature)"
+                            )
+                        
+                        with gr.Row():
+                            generate_btn = gr.Button("🚀 Generate Content", variant="primary", size="lg")
+                            example_btn = gr.Button("💡 Get Example", variant="secondary")
                     
-                    with gr.Column():
-                        generated_output = gr.Textbox(
-                            label="Generated Content",
-                            lines=15,
-                            interactive=False
+                    with gr.Column(scale=3):
+                        output_text = gr.Textbox(
+                            label="🎯 Generated Content",
+                            lines=20,
+                            max_lines=30,
+                            show_copy_button=True
                         )
-                
-                # Wire up content generation events
-                example_btn.click(
-                    fn=get_example,
-                    inputs=content_type_dropdown,
-                    outputs=user_prompt
-                )
-                
-                generate_btn.click(
-                    fn=generate_content,
-                    inputs=[user_prompt, content_type_dropdown, temperature_slider],
-                    outputs=generated_output,
-                    show_progress=True
-                )
+                        
+                        with gr.Row():
+                            clear_btn = gr.Button("🗑️ Clear History")
+                            export_btn = gr.Button("📤 Export Conversation")
+                        
+                        status_output = gr.Textbox(label="📊 Status", lines=2)
             
             # Image Analysis Tab
-            with gr.Tab("🖼️ Image Analysis"):
-                gr.Markdown("## Analyze Images for Content Creation")
+            with gr.Tab("🖼️ Image Analysis", id="image"):
+                gr.HTML("""
+                <div class="warning-box">
+                    <h3>⚠️ Image Analysis Requirements</h3>
+                    <p>Image analysis requires additional dependencies. If you encounter errors:</p>
+                    <ol>
+                        <li>Install required packages: <code>pip install transformers torch torchvision</code></li>
+                        <li>For GPU acceleration: <code>pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118</code></li>
+                        <li>Restart the application after installation</li>
+                    </ol>
+                </div>
+                """)
                 
                 with gr.Row():
                     with gr.Column():
                         image_input = gr.Image(
-                            label="Upload Image",
-                            type="pil"
+                            label="📸 Upload Image",
+                            type="pil",
+                            height=400
                         )
                         
-                        caption_model_dropdown = gr.Dropdown(
+                        caption_model = gr.Dropdown(
                             choices=list(chatbot.caption_models.keys()),
-                            label="Caption Model",
-                            value="BLIP"
+                            value="BLIP",
+                            label="🤖 Caption Model",
+                            info="Select image captioning model (BLIP recommended for speed)"
                         )
                         
                         analyze_btn = gr.Button("🔍 Analyze Image", variant="primary")
                     
                     with gr.Column():
                         image_caption = gr.Textbox(
-                            label="Image Caption",
+                            label="📝 Image Caption",
                             lines=3,
-                            interactive=False
+                            show_copy_button=True
                         )
                         
                         image_description = gr.Textbox(
-                            label="Detailed Description",
+                            label="📋 Detailed Description",
                             lines=8,
-                            interactive=False
+                            show_copy_button=True
                         )
                 
-                # Wire up image analysis events
-                analyze_btn.click(
-                    fn=analyze_uploaded_image,
-                    inputs=[image_input, caption_model_dropdown],
-                    outputs=[image_caption, image_description],
-                    show_progress=True
-                )
-            
-            # RESTORED: Image to Video Tab
-            with gr.Tab("🖼️➡️🎬 Image to Video"):
-                gr.Markdown("## Convert Images to Video Prompts")
+                gr.HTML("<hr>")
                 
                 with gr.Row():
                     with gr.Column():
-                        video_image_input = gr.Image(
-                            label="Upload Image for Video Conversion",
-                            type="pil"
+                        gr.HTML("<h3>🎬 Image to Video Prompt Generation</h3>")
+                        video_request = gr.Textbox(
+                            label="🎯 Video Requirements (Optional)",
+                            placeholder="Specify any particular movements, actions, or video style you want...",
+                            lines=2
                         )
                         
-                        video_user_request = gr.Textbox(
-                            label="Additional Requirements",
-                            placeholder="Any specific movements, mood, or style you want...",
-                            lines=3
-                        )
-                        
-                        generate_video_btn = gr.Button("🎬 Generate Video Prompt", variant="primary")
+                        video_btn = gr.Button("🎬 Generate Video Prompt", variant="secondary")
                     
                     with gr.Column():
                         video_prompt_output = gr.Textbox(
-                            label="Generated Video Prompt",
+                            label="🎥 Generated Video Prompt",
                             lines=15,
-                            interactive=False
+                            show_copy_button=True
                         )
-                
-                # Wire up image to video events
-                generate_video_btn.click(
-                    fn=generate_video_prompt_from_image,
-                    inputs=[video_image_input, video_user_request],
-                    outputs=video_prompt_output,
-                    show_progress=True
-                )
             
             # Prompt Analysis Tab
-            with gr.Tab("⚙️ Prompt Analysis"):
-                gr.Markdown("## Analyze Prompt Complexity & SD Forge Parameters")
+            with gr.Tab("⚙️ Prompt Analysis", id="analysis"):
+                gr.HTML("""
+                <div class="model-info">
+                    <h3>🔍 Prompt Complexity Analysis & SD Forge Parameters</h3>
+                    <p>Analyze your prompts and get optimized Stable Diffusion Forge parameters for Flux models.</p>
+                </div>
+                """)
                 
                 with gr.Row():
                     with gr.Column():
                         analysis_prompt = gr.Textbox(
-                            label="Prompt to Analyze",
-                            placeholder="Enter your image generation prompt...",
-                            lines=5
+                            label="📝 Prompt to Analyze",
+                            placeholder="Enter your image generation prompt here...",
+                            lines=4
                         )
                         
-                        analyze_complexity_btn = gr.Button("📊 Analyze Complexity", variant="primary")
+                        with gr.Row():
+                            sampler_choice = gr.Dropdown(
+                                choices=["Euler a", "Euler", "DPM++ 2M", "DPM++ 2M SDE", "DPM++ 2M Karras", "DPM++ 2M SDE Karras", "DDIM", "PLMS"],
+                                value="DPM++ 2M",
+                                label="🎛️ Sampler"
+                            )
+                            
+                            scheduler_choice = gr.Dropdown(
+                                choices=["Automatic", "Karras", "Exponential", "Polyexponential", "SGM Uniform"],
+                                value="Karras",
+                                label="📅 Scheduler"
+                            )
+                        
+                        distilled_cfg_slider = gr.Slider(
+                            minimum=1,
+                            maximum=20,
+                            value=10,
+                            step=1,
+                            label="🎚️ Distilled CFG Scale"
+                        )
+                        
+                        analyze_complexity_btn = gr.Button("🔍 Analyze Prompt", variant="primary")
                     
                     with gr.Column():
-                        complexity_analysis = gr.Textbox(
-                            label="Complexity Analysis",
-                            lines=10,
-                            interactive=False
+                        complexity_output = gr.Textbox(
+                            label="📊 Complexity Analysis",
+                            lines=12,
+                            show_copy_button=True
                         )
                         
-                        sd_parameters = gr.Textbox(
-                            label="SD Forge Parameters",
-                            lines=10,
-                            interactive=False
+                        parameters_output = gr.Textbox(
+                            label="⚙️ Recommended Parameters",
+                            lines=12,
+                            show_copy_button=True
                         )
-                
-                # Wire up prompt analysis events
-                analyze_complexity_btn.click(
-                    fn=analyze_prompt_complexity,
-                    inputs=analysis_prompt,
-                    outputs=[complexity_analysis, sd_parameters]
-                )
             
-            # Conversation History Tab
-            with gr.Tab("📚 Conversation History"):
-                gr.Markdown("## Manage Conversation History")
-                
+            # Model Settings Tab
+            with gr.Tab("🤖 Model Settings", id="models"):
                 with gr.Row():
-                    clear_btn = gr.Button("🗑️ Clear History", variant="secondary")
-                    export_btn = gr.Button("💾 Export History", variant="primary")
+                    with gr.Column():
+                        gr.HTML("""
+                        <div class="model-info">
+                            <h3>🤖 Available Models</h3>
+                            <p>Select and load AI models for content generation. Models are downloaded automatically from Hugging Face.</p>
+                        </div>
+                        """)
+                        
+                        model_choice = gr.Dropdown(
+                            choices=list(chatbot.model_configs.keys()),
+                            value="Luna-AI-Llama2-Uncensored",
+                            label="🎯 Select Model",
+                            info="Choose the AI model for content generation"
+                        )
+                        
+                        gpu_layers = gr.Slider(
+                            minimum=0,
+                            maximum=50,
+                            value=35,
+                            step=1,
+                            label="🎮 GPU Layers",
+                            info="Number of layers to run on GPU (0 = CPU only, higher = more GPU usage)"
+                        )
+                        
+                        load_btn = gr.Button("⬇️ Load Model", variant="primary", size="lg")
+                        
+                        model_status = gr.Textbox(label="📊 Model Status", lines=3)
+                    
+                    with gr.Column():
+                        gr.HTML("""
+                        <div class="model-info">
+                            <h3>📥 Download Additional Models</h3>
+                            <p>Download custom models from Hugging Face repositories.</p>
+                        </div>
+                        """)
+                        
+                        repo_id = gr.Textbox(
+                            label="🏪 Repository ID",
+                            placeholder="e.g., TheBloke/Llama-2-7B-Chat-GGUF",
+                            info="Hugging Face repository ID"
+                        )
+                        
+                        filename = gr.Textbox(
+                            label="📄 Model Filename",
+                            placeholder="e.g., llama-2-7b-chat.Q4_K_M.gguf",
+                            info="Specific model file to download"
+                        )
+                        
+                        download_btn = gr.Button("📥 Download Model", variant="secondary")
+                        
+                        download_status = gr.Textbox(label="📊 Download Status", lines=3)
                 
-                history_status = gr.Textbox(
-                    label="Status",
-                    interactive=False,
-                    lines=2
-                )
-                
-                # Wire up history management events
-                clear_btn.click(
-                    fn=clear_conversation,
-                    outputs=history_status
-                )
-                
-                export_btn.click(
-                    fn=export_conversation,
-                    outputs=history_status
-                )
+                # Model descriptions
+                gr.HTML("""
+                <div class="model-info">
+                    <h3>📋 Model Descriptions</h3>
+                    <ul>
+                        <li><strong>Luna-AI-Llama2-Uncensored (7B):</strong> Fast and efficient, good for most adult content tasks</li>
+                        <li><strong>WizardLM-13B-Uncensored (13B):</strong> Balanced performance and quality</li>
+                        <li><strong>Wizard-Vicuna-30B-Uncensored (30B):</strong> Highest quality, requires powerful hardware</li>
+                        <li><strong>Nous-Hermes-13B-Uncensored (13B):</strong> Excellent for roleplay and creative content</li>
+                        <li><strong>Llama-3.1-8B-Instruct (8B):</strong> Modern model with good balance of speed and quality</li>
+                        <li><strong>Qwen2.5-14B-Instruct (14B):</strong> High-quality model for detailed content</li>
+                        <li><strong>Llama-3.1-70B-Instruct (70B):</strong> Premium model, best quality (requires very powerful hardware)</li>
+                    </ul>
+                    <p><strong>💡 Recommendation:</strong> Start with Luna-AI for testing, upgrade to WizardLM-13B for better quality, or Qwen2.5-14B for the best balance.</p>
+                </div>
+                """)
+        
+        # Event handlers
+        generate_btn.click(
+            fn=generate_content,
+            inputs=[prompt_input, content_type, main_influencer_input, temperature],
+            outputs=[output_text]
+        )
+        
+        example_btn.click(
+            fn=get_example,
+            inputs=[content_type],
+            outputs=[prompt_input]
+        )
+        
+        load_btn.click(
+            fn=load_model_interface,
+            inputs=[model_choice, gpu_layers],
+            outputs=[model_status]
+        )
+        
+        download_btn.click(
+            fn=download_model_interface,
+            inputs=[repo_id, filename],
+            outputs=[download_status]
+        )
+        
+        analyze_btn.click(
+            fn=analyze_uploaded_image,
+            inputs=[image_input, caption_model],
+            outputs=[image_caption, image_description]
+        )
+        
+        video_btn.click(
+            fn=generate_video_prompt_from_image,
+            inputs=[image_input, video_request],
+            outputs=[video_prompt_output]
+        )
+        
+        analyze_complexity_btn.click(
+            fn=analyze_prompt_complexity,
+            inputs=[analysis_prompt, sampler_choice, scheduler_choice, distilled_cfg_slider],
+            outputs=[complexity_output, parameters_output]
+        )
+        
+        clear_btn.click(
+            fn=clear_conversation,
+            outputs=[status_output]
+        )
+        
+        export_btn.click(
+            fn=export_conversation,
+            outputs=[status_output]
+        )
     
     return interface
 
 if __name__ == "__main__":
-    print("🚀 Starting Fanvue Chatbot with RTX GPU Detection...")
-    print("📍 Server will be available at: http://127.0.0.1:7861")
+    print("🚀 Starting Influencer Chatbot...")
+    print("📍 Access the interface at: http://localhost:7860")
     
-    # Print GPU detection results
-    print("\n" + "="*60)
-    print("🎮 RTX GPU DETECTION RESULTS")
-    print("="*60)
-    print(get_gpu_status())
-    print("="*60)
-    
-    # Create and launch the interface
     interface = create_interface()
     interface.launch(
-        server_name="127.0.0.1",
-        server_port=7861,
+        server_name="0.0.0.0",
+        server_port=7860,
         share=False,
-        show_error=True
-        # Removed deprecated enable_queue parameter
+        show_error=True,
+        show_tips=True,
+        enable_queue=True
     )
