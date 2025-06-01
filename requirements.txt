@@ -26,3 +26,7 @@ python-dateutil>=2.8.0
 
 # Legacy support (for backward compatibility)
 ctransformers>=0.2.0
+
+# NEW: Intelligent Prompt Analysis System Dependencies
+# No additional dependencies required - uses only Python standard library
+# and existing dependencies for maximum compatibility
