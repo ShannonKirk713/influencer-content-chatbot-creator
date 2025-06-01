@@ -143,6 +143,28 @@ class ImageAnalyzer:
             if detailed_prompt in detailed_description:
                 detailed_description = detailed_description.replace(detailed_prompt, "").strip()
             
+            # If the description is too similar to the prompt, generate a more natural description
+            if len(detailed_description) < 20 or detailed_description.lower().startswith("describe"):
+                # Try a different approach for detailed description
+                natural_prompt = "a detailed description of"
+                natural_inputs = self.processor(image, text=natural_prompt, return_tensors="pt")
+                if torch.cuda.is_available() and hasattr(self.model, 'cuda'):
+                    natural_inputs = {k: v.cuda() for k, v in natural_inputs.items()}
+                
+                with torch.no_grad():
+                    natural_outputs = self.model.generate(
+                        **natural_inputs, 
+                        max_new_tokens=100, 
+                        num_beams=3,
+                        do_sample=True,
+                        temperature=0.9
+                    )
+                
+                detailed_description = self.processor.decode(natural_outputs[0], skip_special_tokens=True)
+                # Remove the prompt prefix if present
+                if natural_prompt in detailed_description:
+                    detailed_description = detailed_description.replace(natural_prompt, "").strip()
+            
             print(f"✅ Detailed description generated ({len(detailed_description)} characters)")
             
             return {
