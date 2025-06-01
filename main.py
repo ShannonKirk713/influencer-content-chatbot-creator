@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Influencer Chatbot - Advanced AI Assistant for Adult Content Creation
-Enhanced with multiple models, image analysis, and comprehensive content generation
+Enhanced with intelligent prompt analysis and dynamic parameter optimization
 """
 
 import gradio as gr
@@ -16,6 +16,10 @@ import random
 # Import our modules
 from image_analyzer import image_analyzer
 from sd_forge_utils import PromptComplexityAnalyzer, SDForgeParams
+
+# Import the new intelligent prompt analysis system
+from prompt_analyzer import IntelligentPromptAnalyzer, ComplexityLevel, ContentType
+from api_wrapper import PromptAnalysisAPI
 
 # Configure logging
 logging.basicConfig(
@@ -36,6 +40,12 @@ class InfluencerChatbot:
         self.current_model = None
         self.conversation_history = []
         self.history_folder = "conversation_logs"
+        
+        # Initialize intelligent prompt analysis system
+        self.intelligent_analyzer = IntelligentPromptAnalyzer()
+        self.analysis_api = PromptAnalysisAPI()
+        
+        # Keep legacy analyzer for backward compatibility
         self.complexity_analyzer = PromptComplexityAnalyzer()
         
         # Create history folder
@@ -536,8 +546,74 @@ def generate_video_prompt_from_image(image: Image.Image, user_request: str, prog
         print(error_msg)
         return error_msg
 
-def analyze_prompt_complexity(prompt: str, sampler: str, scheduler: str, distilled_cfg: float) -> Tuple[str, str]:
-    """Analyze prompt complexity and suggest SD Forge parameters with flexible options."""
+def analyze_prompt_complexity_intelligent(prompt: str, sampler: str, scheduler: str, distilled_cfg: float) -> Tuple[str, str]:
+    """Analyze prompt complexity using the new intelligent system with flexible options."""
+    if not prompt.strip():
+        return "Please enter a prompt to analyze.", ""
+    
+    try:
+        # Use the new intelligent analysis system
+        analysis_result = chatbot.analysis_api.analyze(prompt)
+        parameters_result = chatbot.analysis_api.get_optimal_parameters(
+            prompt, sampler, scheduler, distilled_cfg
+        )
+        
+        # Format analysis results
+        complexity = analysis_result['complexity']
+        content = analysis_result['content']
+        recommendations = analysis_result['recommendations']
+        
+        analysis_text = f"""🔍 **Intelligent Prompt Analysis**
+
+**Overall Complexity:** {complexity['level'].title()} ({complexity['score']}/100)
+
+**Content Analysis:**
+- Content Type: {content['type'].title()}
+- Word Count: {complexity['word_count']}
+- Technical Score: {complexity['technical_score']}
+- Detail Score: {complexity['detail_score']}
+- Modifier Score: {complexity['modifier_score']}
+
+**Content Elements Found:**
+- Style Indicators: {', '.join(content['style_indicators']) if content['style_indicators'] else 'None detected'}
+- Quality Terms: {', '.join(content['quality_indicators']) if content['quality_indicators'] else 'None detected'}
+- Composition Elements: {', '.join(content['composition_elements']) if content['composition_elements'] else 'None detected'}
+- Lighting Terms: {', '.join(content['lighting_terms']) if content['lighting_terms'] else 'None detected'}
+
+**Technical Categories:**"""
+        
+        for category, count in analysis_result['technical_categories'].items():
+            if count > 0:
+                analysis_text += f"\n- {category.title()}: {count} terms"
+        
+        # Format parameters with user selections
+        params_text = f"""⚙️ **Optimized Generation Parameters**
+
+**Flux Model Parameters:**
+Steps: {parameters_result['steps']}, Sampler: {parameters_result['sampler']}, Schedule type: {parameters_result['scheduler']}, CFG scale: {parameters_result['cfg_scale']}, Distilled CFG Scale: {parameters_result['distilled_cfg_scale']}, Seed: {parameters_result['seed']}, Size: {parameters_result['width']}x{parameters_result['height']}
+
+**Individual Settings:**
+- Steps: {parameters_result['steps']} (dynamically calculated)
+- Sampler: {parameters_result['sampler']} (user selected)
+- Schedule Type: {parameters_result['scheduler']} (user selected)
+- CFG Scale: {parameters_result['cfg_scale']} (optimized for Flux)
+- Distilled CFG Scale: {parameters_result['distilled_cfg_scale']} (user selected)
+- Seed: {parameters_result['seed']} (use -1 for random)
+- Size: {parameters_result['width']}x{parameters_result['height']} (optimized for content type)
+- Guidance Scale: {parameters_result['guidance_scale']} (for advanced models)
+- Negative Prompt Strength: {parameters_result['negative_prompt_strength']}
+
+**Intelligent Analysis:** Based on your prompt's complexity level ({complexity['level']}), content type ({content['type']}), and technical elements, these parameters are dynamically optimized using research-backed analysis instead of static values."""
+        
+        return analysis_text, params_text
+        
+    except Exception as e:
+        error_msg = f"❌ Error in intelligent analysis: {str(e)}"
+        logger.error(error_msg)
+        return error_msg, ""
+
+def analyze_prompt_complexity_legacy(prompt: str, sampler: str, scheduler: str, distilled_cfg: float) -> Tuple[str, str]:
+    """Legacy prompt analysis for backward compatibility."""
     if not prompt.strip():
         return "Please enter a prompt to analyze.", ""
     
@@ -554,7 +630,7 @@ def analyze_prompt_complexity(prompt: str, sampler: str, scheduler: str, distill
         sd_params.distilled_cfg_scale = distilled_cfg
         
         # Format analysis results
-        analysis_text = f"""🔍 **Prompt Complexity Analysis**
+        analysis_text = f"""🔍 **Legacy Prompt Complexity Analysis**
 
 **Overall Complexity:** {analysis['complexity_level']} ({analysis['complexity_score']}/100)
 
@@ -569,16 +645,16 @@ def analyze_prompt_complexity(prompt: str, sampler: str, scheduler: str, distill
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\\n"
+                analysis_text += f"- {category.title()}: {count} terms\n"
         
         # Format SD Forge parameters in Flux format with user selections
-        params_text = f"""⚙️ **Recommended Stable Diffusion Forge Parameters (Flux Format)**
+        params_text = f"""⚙️ **Legacy SD Forge Parameters (Flux Format)**
 
 **Parameters String:**
 Steps: {sd_params.steps}, Sampler: {sd_params.sampler}, Schedule type: {sd_params.schedule_type}, CFG scale: {sd_params.cfg_scale}, Distilled CFG Scale: {sd_params.distilled_cfg_scale}, Seed: {sd_params.seed}, Size: {sd_params.width}x{sd_params.height}
 
 **Individual Settings:**
-- Steps: {sd_params.steps}
+- Steps: {sd_params.steps} (static: 55)
 - Sampler: {sd_params.sampler} (user selected)
 - Schedule Type: {sd_params.schedule_type} (user selected)
 - CFG Scale: {sd_params.cfg_scale} (always 1 for Flux)
@@ -586,7 +662,7 @@ Steps: {sd_params.steps}, Sampler: {sd_params.sampler}, Schedule type: {sd_param
 - Seed: {sd_params.seed} (use -1 for random)
 - Size: {sd_params.width}x{sd_params.height}
 
-**Explanation:** Based on your prompt's complexity level ({analysis['complexity_level']}), these parameters are optimized for Flux model generation with your custom sampler, scheduler, and distilled CFG settings."""
+**Note:** This is the legacy analysis system with static parameters. Use the Intelligent Analysis for dynamic optimization."""
         
         return analysis_text, params_text
         
@@ -702,12 +778,26 @@ def create_interface():
             margin: 1rem 0; 
             color: #856404 !important;
         }
+        .enhancement-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            color: #155724 !important;
+        }
         
         /* Dark theme support */
         .dark .warning-box {
             background: #664d03 !important;
             border: 1px solid #b08900 !important;
             color: #fff3cd !important;
+        }
+        
+        .dark .enhancement-box {
+            background: #155724 !important;
+            border: 1px solid #28a745 !important;
+            color: #d4edda !important;
         }
         
         .dark .model-info {
@@ -739,7 +829,7 @@ def create_interface():
         gr.HTML("""
         <div class="main-header">
             <h1>🔥 Influencer Chatbot - Advanced AI Assistant</h1>
-            <p>Professional AI assistant for adult content creation with multiple models, image analysis, and comprehensive content generation</p>
+            <p>Professional AI assistant for adult content creation with intelligent prompt analysis, multiple models, image analysis, and comprehensive content generation</p>
         </div>
         """)
         
@@ -862,9 +952,16 @@ def create_interface():
             # Prompt Analysis Tab
             with gr.Tab("⚙️ Prompt Analysis", id="analysis"):
                 gr.HTML("""
-                <div class="model-info">
-                    <h3>🔍 Prompt Complexity Analysis & SD Forge Parameters</h3>
-                    <p>Analyze your prompts and get optimized Stable Diffusion Forge parameters for Flux models.</p>
+                <div class="enhancement-box">
+                    <h3>🚀 NEW: Intelligent Prompt Analysis System</h3>
+                    <p>This system replaces static parameter selection (like fixed 55 steps) with dynamic, research-based analysis that adapts to your prompt's complexity and content type.</p>
+                    <ul>
+                        <li><strong>Dynamic Steps:</strong> Automatically calculates optimal steps (20-80) based on prompt complexity</li>
+                        <li><strong>Smart Sampler Selection:</strong> Chooses best sampler based on content type and complexity</li>
+                        <li><strong>Adaptive CFG:</strong> Optimizes CFG scale for your specific prompt</li>
+                        <li><strong>Content-Aware:</strong> Recognizes portraits, landscapes, artistic styles, etc.</li>
+                        <li><strong>Technical Analysis:</strong> Detects camera, lighting, composition terms</li>
+                    </ul>
                 </div>
                 """)
                 
@@ -897,18 +994,20 @@ def create_interface():
                             label="🎚️ Distilled CFG Scale"
                         )
                         
-                        analyze_complexity_btn = gr.Button("🔍 Analyze Prompt", variant="primary")
+                        with gr.Row():
+                            analyze_intelligent_btn = gr.Button("🧠 Intelligent Analysis", variant="primary")
+                            analyze_legacy_btn = gr.Button("📊 Legacy Analysis", variant="secondary")
                     
                     with gr.Column():
                         complexity_output = gr.Textbox(
-                            label="📊 Complexity Analysis",
-                            lines=12,
+                            label="📊 Analysis Results",
+                            lines=15,
                             show_copy_button=True
                         )
                         
                         parameters_output = gr.Textbox(
-                            label="⚙️ Recommended Parameters",
-                            lines=12,
+                            label="⚙️ Optimized Parameters",
+                            lines=15,
                             show_copy_button=True
                         )
             
@@ -1021,8 +1120,14 @@ def create_interface():
             outputs=[video_prompt_output]
         )
         
-        analyze_complexity_btn.click(
-            fn=analyze_prompt_complexity,
+        analyze_intelligent_btn.click(
+            fn=analyze_prompt_complexity_intelligent,
+            inputs=[analysis_prompt, sampler_choice, scheduler_choice, distilled_cfg_slider],
+            outputs=[complexity_output, parameters_output]
+        )
+        
+        analyze_legacy_btn.click(
+            fn=analyze_prompt_complexity_legacy,
             inputs=[analysis_prompt, sampler_choice, scheduler_choice, distilled_cfg_slider],
             outputs=[complexity_output, parameters_output]
         )
@@ -1040,7 +1145,7 @@ def create_interface():
     return interface
 
 if __name__ == "__main__":
-    print("🚀 Starting Influencer Chatbot...")
+    print("🚀 Starting Influencer Chatbot with Intelligent Prompt Analysis...")
     print("📍 Access the interface at: http://localhost:7861")
     
     # Print GPU detection results
