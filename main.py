@@ -47,13 +47,13 @@ class FanvueChatbot:
             "Luna-AI-Llama2-Uncensored": {
                 "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                 "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                "template": "USER: {prompt}\nASSISTANT:",
+                "template": "USER: {prompt}\\nASSISTANT:",
                 "description": "Efficient 7B uncensored model, good for most adult content tasks"
             },
             "WizardLM-13B-Uncensored": {
                 "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
                 "filename": "WizardLM-13B-Uncensored.Q4_K_M.gguf",
-                "template": "You are a helpful AI assistant.\n\nUSER: {prompt}\nASSISTANT:",
+                "template": "You are a helpful AI assistant.\\n\\nUSER: {prompt}\\nASSISTANT:",
                 "description": "Balanced 13B uncensored model, high quality responses"
             },
             "Wizard-Vicuna-30B-Uncensored": {
@@ -65,50 +65,50 @@ class FanvueChatbot:
             "Nous-Hermes-13B-Uncensored": {
                 "repo_id": "TheBloke/Nous-Hermes-13b-Chinese-GGUF",
                 "filename": "nous-hermes-13b-chinese.Q4_K_M.gguf",
-                "template": "### Instruction:\n{prompt}\n\n### Response:",
+                "template": "### Instruction:\\n{prompt}\\n\\n### Response:",
                 "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
             },
             # Modern models for comparison
             "llama-3.2-3b-instruct": {
                 "repo_id": "huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF",
                 "filename": "Llama-3.2-3B-Instruct-Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Fast 3B model, good for quick responses"
             },
             "llama-3.1-8b-instruct": {
                 "repo_id": "huggingface.co/bartowski/Llama-3.1-8B-Instruct-GGUF",
                 "filename": "Llama-3.1-8B-Instruct-Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Balanced 8B model, good quality and speed"
             },
             "qwen-2.5-14b-instruct": {
                 "repo_id": "huggingface.co/bartowski/Qwen2.5-14B-Instruct-GGUF",
                 "filename": "Qwen2.5-14B-Instruct-Q4_K_M.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "High-quality 14B model, excellent for detailed content"
             },
             "llama-3.1-70b-instruct": {
                 "repo_id": "huggingface.co/bartowski/Llama-3.1-70B-Instruct-GGUF",
                 "filename": "Llama-3.1-70B-Instruct-IQ2_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Premium 70B model, best quality (requires powerful hardware)"
             },
             "goliath-120b": {
                 "repo_id": "huggingface.co/bartowski/goliath-120b-GGUF",
                 "filename": "goliath-120b-Q2_K.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "Ultra-high-end 120B model, exceptional quality (requires very powerful hardware)"
             },
             "deepseek-v2.5": {
                 "repo_id": "huggingface.co/bartowski/DeepSeek-V2.5-GGUF",
                 "filename": "DeepSeek-V2.5-Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Advanced reasoning model, great for complex prompts"
             },
             "mixtral-8x22b-instruct": {
                 "repo_id": "huggingface.co/bartowski/Mixtral-8x22B-Instruct-v0.1-GGUF",
                 "filename": "Mixtral-8x22B-Instruct-v0.1-Q2_K.gguf",
-                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "template": "<s>[INST] {system}\\n\\n{prompt} [/INST]",
                 "description": "High-end 30B model, best quality (requires powerful hardware)"
             }
         }
@@ -244,13 +244,13 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             filename = f"{self.history_folder}/conversation_{date_str}.txt"
             
             with open(filename, "a", encoding="utf-8") as f:
-                f.write(f"\n{'='*80}\n")
-                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Content Type: {content_type}\n")
-                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\n")
-                f.write(f"{'='*80}\n")
-                f.write(f"USER PROMPT:\n{prompt}\n")
-                f.write(f"\nAI RESPONSE:\n{response}\n")
+                f.write(f"\\n{'='*80}\\n")
+                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\\n")
+                f.write(f"Content Type: {content_type}\\n")
+                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\\n")
+                f.write(f"{'='*80}\\n")
+                f.write(f"USER PROMPT:\\n{prompt}\\n")
+                f.write(f"\\nAI RESPONSE:\\n{response}\\n")
                 
             print(f"💾 Conversation saved to {filename}")
             
@@ -327,7 +327,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 self.model_configs[model_name] = {
                     "repo_id": repo_id,
                     "filename": filename,
-                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                     "description": f"Custom model from {repo_id}"
                 }
             
@@ -368,7 +368,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             else:
                 # Legacy format - combine system and user prompt
                 full_prompt = model_config["template"].format(
-                    prompt=f"{system_prompt}\n\nUser Request: {prompt}"
+                    prompt=f"{system_prompt}\\n\\nUser Request: {prompt}"
                 )
             
             progress(0.3, "Generating response...")
@@ -379,7 +379,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\n\nUSER:", "\n\nASSISTANT:"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\n\\nUSER:", "\\n\\nASSISTANT:"],
                 echo=False
             )
             
@@ -529,7 +529,7 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\n"
+                analysis_text += f"- {category.title()}: {count} terms\\n"
         
         # Format SD Forge parameters in Flux format
         params_text = f"""⚙️ **Recommended Stable Diffusion Forge Parameters (Flux Format)**
@@ -931,6 +931,5 @@ if __name__ == "__main__":
         server_port=7861,
         share=False,
         show_error=True,
-        show_tips=True,
         enable_queue=True
     )
