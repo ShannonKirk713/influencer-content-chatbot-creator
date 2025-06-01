@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 """
-Prompt utilities for Fanvue Chatbot
-Utility functions for processing and formatting prompts
+Utility functions for prompt processing and enhancement.
 """
 
 import re
@@ -9,314 +7,383 @@ import json
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
-class PromptFormatter:
-    """Utility class for formatting and processing prompts."""
+class PromptProcessor:
+    """Utility class for processing and enhancing prompts."""
     
     def __init__(self):
-        self.emoji_patterns = {
-            'concept': '📸',
-            'subjects': '👥', 
-            'clothing': '👗',
-            'setting': '🏞️',
-            'pose': '💃',
-            'technical': '📷',
-            'video_concept': '🎬',
-            'motion': '🎭',
-            'camera': '📹',
-            'style': '🎨',
-            'duration': '⏱️',
-            'image_analysis': '🖼️'
+        self.image_prompt_structure = {
+            "concept": "📸 CONCEPT:",
+            "subjects": "👥 SUBJECT(S):",
+            "clothing": "👗 CLOTHING:",
+            "setting": "🏞️ SETTING:",
+            "pose": "💃 POSE & EXPRESSION:",
+            "technical": "📷 TECHNICAL:"
         }
-    
-    def validate_image_prompt(self, prompt: str) -> Tuple[bool, List[str]]:
-        """Validate if an image prompt contains all required sections."""
-        required_sections = ['📸 CONCEPT:', '👥 SUBJECT(S):', '👗 CLOTHING:', 
-                           '🏞️ SETTING:', '💃 POSE & EXPRESSION:', '📷 TECHNICAL:']
+        
+        self.video_prompt_structure = {
+            "concept": "🎬 CONCEPT:",
+            "subjects": "👥 SUBJECT(S):",
+            "clothing": "👗 CLOTHING:",
+            "setting": "🏞️ SETTING:",
+            "motion": "🎭 MOTION & ACTION:",
+            "camera": "📹 CAMERA WORK:",
+            "style": "🎨 STYLE & ATMOSPHERE:",
+            "duration": "⏱️ DURATION NOTES:"
+        }
+        
+        self.image_to_video_structure = {
+            "analysis": "🖼️ IMAGE ANALYSIS:",
+            "concept": "🎬 VIDEO CONCEPT:",
+            "motion": "🎭 ADDED MOTION:",
+            "camera": "📹 CAMERA DYNAMICS:",
+            "atmosphere": "🎨 ENHANCED ATMOSPHERE:",
+            "sequence": "⏱️ SEQUENCE FLOW:"
+        }
+
+    def validate_prompt_structure(self, prompt: str, prompt_type: str) -> Dict[str, bool]:
+        """Validate if a generated prompt follows the expected structure."""
+        if prompt_type == "image_prompt":
+            structure = self.image_prompt_structure
+        elif prompt_type == "video_prompt":
+            structure = self.video_prompt_structure
+        elif prompt_type == "image_to_video":
+            structure = self.image_to_video_structure
+        else:
+            return {"valid": True, "missing_sections": []}
         
         missing_sections = []
-        for section in required_sections:
-            if section not in prompt:
+        for section, emoji_header in structure.items():
+            if emoji_header not in prompt:
                 missing_sections.append(section)
         
-        is_valid = len(missing_sections) == 0
-        return is_valid, missing_sections
-    
-    def validate_video_prompt(self, prompt: str) -> Tuple[bool, List[str]]:
-        """Validate if a video prompt contains all required sections."""
-        required_sections = ['🎬 CONCEPT:', '👥 SUBJECT(S):', '👗 CLOTHING:',
-                           '🏞️ SETTING:', '🎭 MOTION & ACTION:', '📹 CAMERA WORK:',
-                           '🎨 STYLE & ATMOSPHERE:', '⏱️ DURATION NOTES:']
+        return {
+            "valid": len(missing_sections) == 0,
+            "missing_sections": missing_sections,
+            "total_sections": len(structure),
+            "found_sections": len(structure) - len(missing_sections)
+        }
+
+    def extract_prompt_sections(self, prompt: str, prompt_type: str) -> Dict[str, str]:
+        """Extract individual sections from a structured prompt."""
+        if prompt_type == "image_prompt":
+            structure = self.image_prompt_structure
+        elif prompt_type == "video_prompt":
+            structure = self.video_prompt_structure
+        elif prompt_type == "image_to_video":
+            structure = self.image_to_video_structure
+        else:
+            return {"raw_content": prompt}
         
-        missing_sections = []
-        for section in required_sections:
-            if section not in prompt:
-                missing_sections.append(section)
-        
-        is_valid = len(missing_sections) == 0
-        return is_valid, missing_sections
-    
-    def extract_sections(self, prompt: str) -> Dict[str, str]:
-        """Extract sections from a formatted prompt."""
         sections = {}
+        lines = prompt.split('\n')
+        current_section = None
+        current_content = []
         
-        # Define patterns for different emoji sections
-        patterns = {
-            'concept': r'📸 CONCEPT:(.*?)(?=👥|$)',
-            'video_concept': r'🎬 CONCEPT:(.*?)(?=👥|$)',
-            'subjects': r'👥 SUBJECT\(S\):(.*?)(?=👗|🏞️|$)',
-            'clothing': r'👗 CLOTHING:(.*?)(?=🏞️|💃|$)',
-            'setting': r'🏞️ SETTING:(.*?)(?=💃|🎭|📹|$)',
-            'pose': r'💃 POSE & EXPRESSION:(.*?)(?=📷|$)',
-            'motion': r'🎭 MOTION & ACTION:(.*?)(?=📹|$)',
-            'camera': r'📹 CAMERA WORK:(.*?)(?=🎨|$)',
-            'technical': r'📷 TECHNICAL:(.*?)$',
-            'style': r'🎨 STYLE & ATMOSPHERE:(.*?)(?=⏱️|$)',
-            'duration': r'⏱️ DURATION NOTES:(.*?)$',
-            'image_analysis': r'🖼️ IMAGE ANALYSIS:(.*?)(?=🎬|$)'
-        }
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Check if this line starts a new section
+            section_found = False
+            for section_name, emoji_header in structure.items():
+                if line.startswith(emoji_header):
+                    # Save previous section if exists
+                    if current_section and current_content:
+                        sections[current_section] = ' '.join(current_content).strip()
+                    
+                    # Start new section
+                    current_section = section_name
+                    current_content = [line[len(emoji_header):].strip()]
+                    section_found = True
+                    break
+            
+            # If not a section header, add to current content
+            if not section_found and current_section:
+                current_content.append(line)
         
-        for key, pattern in patterns.items():
-            match = re.search(pattern, prompt, re.DOTALL | re.IGNORECASE)
-            if match:
-                sections[key] = match.group(1).strip()
+        # Save the last section
+        if current_section and current_content:
+            sections[current_section] = ' '.join(current_content).strip()
         
         return sections
-    
-    def format_prompt_for_export(self, prompt: str, metadata: Dict) -> Dict:
-        """Format a prompt for export with metadata."""
-        sections = self.extract_sections(prompt)
-        
-        export_data = {
-            'timestamp': datetime.now().isoformat(),
-            'metadata': metadata,
-            'raw_prompt': prompt,
-            'sections': sections,
-            'word_count': len(prompt.split()),
-            'character_count': len(prompt)
-        }
-        
-        return export_data
-    
-    def clean_response(self, response: str) -> str:
-        """Clean up AI model response."""
-        # Remove common AI response prefixes
-        prefixes_to_remove = [
-            "ASSISTANT:", "Assistant:", "AI:", "Response:", 
-            "Here's", "Here is", "I'll create", "I'll generate"
-        ]
-        
-        cleaned = response.strip()
-        
-        for prefix in prefixes_to_remove:
-            if cleaned.startswith(prefix):
-                cleaned = cleaned[len(prefix):].strip()
-                break
-        
-        # Remove excessive newlines
-        cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
-        
-        return cleaned
-    
+
     def enhance_prompt_with_keywords(self, prompt: str, keywords: List[str]) -> str:
         """Enhance a prompt by incorporating additional keywords."""
         if not keywords:
             return prompt
         
         keyword_string = ", ".join(keywords)
-        enhanced_prompt = f"{prompt}\n\nAdditional elements to consider: {keyword_string}"
-        
+        enhanced_prompt = f"{prompt}\n\nAdditional elements to incorporate: {keyword_string}"
         return enhanced_prompt
-    
-    def generate_variations(self, base_prompt: str, variation_count: int = 3) -> List[str]:
-        """Generate variations of a base prompt."""
-        variations = []
-        
-        # Define variation templates
-        variation_templates = [
-            "Create a more artistic version of: {prompt}",
-            "Design a more intimate variation of: {prompt}", 
-            "Generate a more dramatic interpretation of: {prompt}",
-            "Develop a softer, more romantic version of: {prompt}",
-            "Create a more explicit variation of: {prompt}"
+
+    def generate_style_variations(self, base_prompt: str) -> List[str]:
+        """Generate style variations of a base prompt."""
+        styles = [
+            "film noir style with dramatic shadows",
+            "soft romantic style with warm lighting",
+            "high fashion editorial style",
+            "vintage pin-up aesthetic",
+            "modern minimalist approach",
+            "artistic black and white photography",
+            "golden hour natural lighting",
+            "cyberpunk futuristic style"
         ]
         
-        for i in range(min(variation_count, len(variation_templates))):
-            variation = variation_templates[i].format(prompt=base_prompt)
+        variations = []
+        for style in styles:
+            variation = f"{base_prompt}\n\nStyle direction: {style}"
             variations.append(variation)
         
         return variations
 
+    def clean_generated_text(self, text: str) -> str:
+        """Clean up generated text by removing artifacts and formatting issues."""
+        # Remove common AI artifacts
+        text = re.sub(r'\[.*?\]', '', text)  # Remove bracketed content
+        text = re.sub(r'\(.*?\)', '', text)  # Remove parenthetical content
+        text = re.sub(r'<.*?>', '', text)    # Remove HTML-like tags
+        
+        # Fix spacing issues
+        text = re.sub(r'\s+', ' ', text)     # Multiple spaces to single
+        text = re.sub(r'\n\s*\n', '\n\n', text)  # Multiple newlines to double
+        
+        # Remove leading/trailing whitespace
+        text = text.strip()
+        
+        return text
+
+    def format_for_export(self, prompt: str, metadata: Dict) -> Dict:
+        """Format a prompt for export with metadata."""
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "prompt_content": prompt,
+            "metadata": metadata,
+            "word_count": len(prompt.split()),
+            "character_count": len(prompt)
+        }
+
 class ContentAnalyzer:
-    """Analyze and categorize generated content."""
+    """Analyze and categorize adult content prompts."""
     
     def __init__(self):
         self.content_categories = {
-            'artistic': ['artistic', 'aesthetic', 'beautiful', 'elegant', 'graceful'],
-            'intimate': ['intimate', 'sensual', 'romantic', 'tender', 'passionate'],
-            'explicit': ['explicit', 'erotic', 'sexual', 'provocative', 'seductive'],
-            'fashion': ['fashion', 'style', 'clothing', 'lingerie', 'outfit'],
-            'technical': ['lighting', 'camera', 'photography', 'technical', 'professional']
+            "artistic": ["artistic", "art", "painting", "sculpture", "renaissance", "classical"],
+            "boudoir": ["boudoir", "intimate", "bedroom", "lingerie", "sensual"],
+            "fashion": ["fashion", "editorial", "runway", "designer", "haute couture"],
+            "lifestyle": ["lifestyle", "casual", "everyday", "natural", "authentic"],
+            "glamour": ["glamour", "luxury", "elegant", "sophisticated", "high-end"],
+            "fetish": ["latex", "leather", "bondage", "fetish", "kink", "alternative"],
+            "vintage": ["vintage", "retro", "pin-up", "classic", "1950s", "1960s"],
+            "outdoor": ["outdoor", "nature", "beach", "garden", "natural light"]
         }
-    
-    def analyze_content_type(self, content: str) -> Dict[str, float]:
-        """Analyze content and return category scores."""
-        content_lower = content.lower()
-        scores = {}
+        
+        self.technical_elements = {
+            "lighting": ["lighting", "light", "shadow", "illumination", "glow"],
+            "camera": ["camera", "lens", "angle", "shot", "perspective", "framing"],
+            "composition": ["composition", "rule of thirds", "symmetry", "balance"],
+            "color": ["color", "palette", "hue", "saturation", "contrast", "tone"],
+            "texture": ["texture", "fabric", "material", "surface", "pattern"],
+            "mood": ["mood", "atmosphere", "feeling", "emotion", "vibe", "energy"]
+        }
+
+    def analyze_content_category(self, prompt: str) -> Dict[str, float]:
+        """Analyze what category of content a prompt represents."""
+        prompt_lower = prompt.lower()
+        category_scores = {}
         
         for category, keywords in self.content_categories.items():
-            score = 0
-            for keyword in keywords:
-                score += content_lower.count(keyword)
-            
-            # Normalize score by content length
-            word_count = len(content.split())
-            normalized_score = score / max(word_count, 1) * 100
-            scores[category] = normalized_score
+            score = sum(1 for keyword in keywords if keyword in prompt_lower)
+            category_scores[category] = score / len(keywords)  # Normalize by keyword count
         
-        return scores
-    
-    def get_dominant_category(self, content: str) -> str:
-        """Get the dominant category for content."""
-        scores = self.analyze_content_type(content)
-        if not scores:
-            return 'general'
+        return category_scores
+
+    def analyze_technical_elements(self, prompt: str) -> Dict[str, bool]:
+        """Analyze what technical elements are present in a prompt."""
+        prompt_lower = prompt.lower()
+        elements_present = {}
         
-        return max(scores, key=scores.get)
-    
-    def calculate_readability_score(self, content: str) -> float:
-        """Calculate a simple readability score."""
-        sentences = content.split('.')
-        words = content.split()
+        for element, keywords in self.technical_elements.items():
+            elements_present[element] = any(keyword in prompt_lower for keyword in keywords)
         
-        if len(sentences) == 0 or len(words) == 0:
-            return 0.0
+        return elements_present
+
+    def suggest_improvements(self, prompt: str) -> List[str]:
+        """Suggest improvements for a prompt based on analysis."""
+        suggestions = []
+        technical_analysis = self.analyze_technical_elements(prompt)
         
-        avg_sentence_length = len(words) / len(sentences)
+        if not technical_analysis.get("lighting"):
+            suggestions.append("Consider adding specific lighting details (soft, dramatic, natural, etc.)")
         
-        # Simple readability score (lower is better)
-        score = max(0, 100 - (avg_sentence_length * 2))
-        return score
+        if not technical_analysis.get("camera"):
+            suggestions.append("Add camera angle or shot type specifications")
+        
+        if not technical_analysis.get("mood"):
+            suggestions.append("Include mood or atmosphere descriptions")
+        
+        if len(prompt.split()) < 50:
+            suggestions.append("Consider adding more descriptive details for richer results")
+        
+        if len(prompt.split()) > 150:
+            suggestions.append("Consider condensing for more focused results")
+        
+        return suggestions
 
 class PromptLibrary:
-    """Manage a library of prompts and templates."""
+    """Manage a library of saved prompts and templates."""
     
     def __init__(self, library_file: str = "prompt_library.json"):
         self.library_file = library_file
-        self.prompts = self.load_library()
-    
+        self.library = self.load_library()
+
     def load_library(self) -> Dict:
         """Load prompt library from file."""
         try:
             with open(self.library_file, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
-            return {'image_prompts': [], 'video_prompts': [], 'templates': {}}
-    
+            return {
+                "templates": {},
+                "saved_prompts": {},
+                "favorites": [],
+                "tags": {}
+            }
+
     def save_library(self):
         """Save prompt library to file."""
         with open(self.library_file, 'w') as f:
-            json.dump(self.prompts, f, indent=2)
-    
-    def add_prompt(self, prompt: str, category: str, tags: List[str] = None):
-        """Add a prompt to the library."""
-        if tags is None:
-            tags = []
-        
-        prompt_entry = {
-            'content': prompt,
-            'tags': tags,
-            'created_at': datetime.now().isoformat(),
-            'usage_count': 0
+            json.dump(self.library, f, indent=2)
+
+    def add_template(self, name: str, template: str, category: str, tags: List[str] = None):
+        """Add a new template to the library."""
+        self.library["templates"][name] = {
+            "content": template,
+            "category": category,
+            "tags": tags or [],
+            "created": datetime.now().isoformat(),
+            "usage_count": 0
         }
-        
-        if category not in self.prompts:
-            self.prompts[category] = []
-        
-        self.prompts[category].append(prompt_entry)
         self.save_library()
-    
-    def search_prompts(self, query: str, category: str = None) -> List[Dict]:
-        """Search prompts by query."""
+
+    def save_prompt(self, name: str, prompt: str, metadata: Dict = None):
+        """Save a generated prompt to the library."""
+        self.library["saved_prompts"][name] = {
+            "content": prompt,
+            "metadata": metadata or {},
+            "saved": datetime.now().isoformat()
+        }
+        self.save_library()
+
+    def search_templates(self, query: str, category: str = None) -> List[Dict]:
+        """Search templates by query and optionally category."""
         results = []
         query_lower = query.lower()
         
-        categories_to_search = [category] if category else self.prompts.keys()
+        for name, template in self.library["templates"].items():
+            if category and template["category"] != category:
+                continue
+            
+            if (query_lower in name.lower() or 
+                query_lower in template["content"].lower() or
+                any(query_lower in tag.lower() for tag in template["tags"])):
+                results.append({
+                    "name": name,
+                    "template": template,
+                    "relevance_score": self._calculate_relevance(query_lower, name, template)
+                })
         
-        for cat in categories_to_search:
-            if cat in self.prompts:
-                for prompt in self.prompts[cat]:
-                    if (query_lower in prompt['content'].lower() or 
-                        any(query_lower in tag.lower() for tag in prompt['tags'])):
-                        results.append({**prompt, 'category': cat})
-        
+        # Sort by relevance
+        results.sort(key=lambda x: x["relevance_score"], reverse=True)
         return results
-    
-    def get_popular_prompts(self, category: str = None, limit: int = 10) -> List[Dict]:
-        """Get most popular prompts by usage count."""
-        all_prompts = []
-        
-        categories_to_check = [category] if category else self.prompts.keys()
-        
-        for cat in categories_to_check:
-            if cat in self.prompts:
-                for prompt in self.prompts[cat]:
-                    all_prompts.append({**prompt, 'category': cat})
-        
-        # Sort by usage count
-        sorted_prompts = sorted(all_prompts, key=lambda x: x['usage_count'], reverse=True)
-        
-        return sorted_prompts[:limit]
-    
-    def increment_usage(self, prompt_content: str):
-        """Increment usage count for a prompt."""
-        for category in self.prompts:
-            for prompt in self.prompts[category]:
-                if prompt['content'] == prompt_content:
-                    prompt['usage_count'] += 1
-                    self.save_library()
-                    return
 
-# Utility functions
-def create_prompt_formatter() -> PromptFormatter:
-    """Create a new prompt formatter instance."""
-    return PromptFormatter()
+    def _calculate_relevance(self, query: str, name: str, template: Dict) -> float:
+        """Calculate relevance score for search results."""
+        score = 0
+        
+        # Name match (highest weight)
+        if query in name.lower():
+            score += 10
+        
+        # Content match
+        content_matches = template["content"].lower().count(query)
+        score += content_matches * 2
+        
+        # Tag matches
+        tag_matches = sum(1 for tag in template["tags"] if query in tag.lower())
+        score += tag_matches * 3
+        
+        # Usage count (popularity)
+        score += template.get("usage_count", 0) * 0.1
+        
+        return score
 
-def create_content_analyzer() -> ContentAnalyzer:
-    """Create a new content analyzer instance."""
-    return ContentAnalyzer()
+    def get_popular_templates(self, limit: int = 10) -> List[Dict]:
+        """Get most popular templates by usage count."""
+        templates = [
+            {"name": name, "template": template}
+            for name, template in self.library["templates"].items()
+        ]
+        
+        templates.sort(key=lambda x: x["template"].get("usage_count", 0), reverse=True)
+        return templates[:limit]
 
-def create_prompt_library(library_file: str = "prompt_library.json") -> PromptLibrary:
-    """Create a new prompt library instance."""
-    return PromptLibrary(library_file)
+    def add_to_favorites(self, prompt_name: str):
+        """Add a prompt to favorites."""
+        if prompt_name not in self.library["favorites"]:
+            self.library["favorites"].append(prompt_name)
+            self.save_library()
 
-# Example usage and testing
-if __name__ == "__main__":
-    # Test the utilities
-    formatter = create_prompt_formatter()
-    analyzer = create_content_analyzer()
+    def remove_from_favorites(self, prompt_name: str):
+        """Remove a prompt from favorites."""
+        if prompt_name in self.library["favorites"]:
+            self.library["favorites"].remove(prompt_name)
+            self.save_library()
+
+    def get_statistics(self) -> Dict:
+        """Get library statistics."""
+        return {
+            "total_templates": len(self.library["templates"]),
+            "total_saved_prompts": len(self.library["saved_prompts"]),
+            "total_favorites": len(self.library["favorites"]),
+            "categories": list(set(t["category"] for t in self.library["templates"].values())),
+            "most_used_template": max(
+                self.library["templates"].items(),
+                key=lambda x: x[1].get("usage_count", 0),
+                default=(None, {"usage_count": 0})
+            )[0]
+        }
+
+# Example usage and default templates
+DEFAULT_TEMPLATES = {
+    "boudoir_basic": {
+        "content": "Create an elegant boudoir photo concept with {subject_description} in {setting} featuring {lighting_style} lighting",
+        "category": "boudoir",
+        "tags": ["boudoir", "intimate", "elegant", "template"]
+    },
+    "fashion_editorial": {
+        "content": "Design a high-fashion editorial concept featuring {clothing_style} in {location} with {mood} atmosphere",
+        "category": "fashion", 
+        "tags": ["fashion", "editorial", "high-end", "template"]
+    },
+    "artistic_nude": {
+        "content": "Create an artistic nude concept inspired by {art_style} with {lighting_description} and {composition_notes}",
+        "category": "artistic",
+        "tags": ["artistic", "nude", "fine art", "template"]
+    }
+}
+
+def initialize_default_library():
+    """Initialize library with default templates."""
+    library = PromptLibrary()
     
-    # Test prompt validation
-    sample_image_prompt = """
-    📸 CONCEPT: Elegant boudoir photography
-    👥 SUBJECT(S): Beautiful woman, 25 years old
-    👗 CLOTHING: Black lace lingerie
-    🏞️ SETTING: Luxurious bedroom
-    💃 POSE & EXPRESSION: Reclining pose
-    📷 TECHNICAL: Soft lighting, 85mm lens
-    """
+    for name, template_data in DEFAULT_TEMPLATES.items():
+        if name not in library.library["templates"]:
+            library.add_template(
+                name=name,
+                template=template_data["content"],
+                category=template_data["category"],
+                tags=template_data["tags"]
+            )
     
-    is_valid, missing = formatter.validate_image_prompt(sample_image_prompt)
-    print(f"Image prompt valid: {is_valid}")
-    if missing:
-        print(f"Missing sections: {missing}")
-    
-    # Test section extraction
-    sections = formatter.extract_sections(sample_image_prompt)
-    print(f"Extracted sections: {list(sections.keys())}")
-    
-    # Test content analysis
-    scores = analyzer.analyze_content_type(sample_image_prompt)
-    print(f"Content scores: {scores}")
-    
-    dominant = analyzer.get_dominant_category(sample_image_prompt)
-    print(f"Dominant category: {dominant}")
+    return library

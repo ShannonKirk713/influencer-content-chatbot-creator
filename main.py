@@ -340,7 +340,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             error_msg = f"Error downloading model: {str(e)}"
             logger.error(error_msg)
             print(f"❌ {error_msg}")
-            return f"❌ {error_msg}"
+            return error_msg
 
     def generate_response(self, prompt: str, content_type: str, temperature: float = 0.7, progress=gr.Progress()) -> str:
         """Generate response using the loaded model."""
@@ -733,6 +733,7 @@ def create_interface():
                             lines=20,
                             max_lines=30,
                             interactive=False,
+                            show_copy_button=True
                         )
                 
                 # Wire up content generation events
@@ -751,7 +752,7 @@ def create_interface():
             
             # Image Analysis Tab
             with gr.Tab("🖼️ Image Analysis"):
-                gr.Markdown("## Analyze Images for Content Creation")
+                gr.Markdown("## Analyze Images and Generate Video Prompts")
                 
                 with gr.Row():
                     with gr.Column():
@@ -767,154 +768,119 @@ def create_interface():
                             label="Caption Model",
                         )
                         
-                        analyze_btn = gr.Button("🔍 Analyze Image", variant="primary", size="lg")
+                        analyze_btn = gr.Button("🔍 Analyze Image", variant="primary")
                         
+                        gr.Markdown("### Generate Video from Image")
+                        video_request_input = gr.Textbox(
+                            label="Additional Requirements (Optional)",
+                            placeholder="e.g., focus on movement, add romantic elements...",
+                            lines=2
+                        )
+                        
+                        video_btn = gr.Button("🎬 Generate Video Prompt", variant="secondary")
+                    
                     with gr.Column():
-                        caption_output = gr.Textbox(
+                        image_caption = gr.Textbox(
                             label="Image Caption",
                             lines=3,
-                            interactive=False,
+                            interactive=False
                         )
                         
-                        description_output = gr.Textbox(
+                        image_description = gr.Textbox(
                             label="Detailed Description",
-                            lines=8,
-                            interactive=False,
+                            lines=5,
+                            interactive=False
                         )
-                
-                # Caption model descriptions
-                gr.Markdown("### Available Caption Models")
-                caption_info_html = "<div class='model-info'>"
-                for name, config in chatbot.caption_models.items():
-                    caption_info_html += f"<p><strong>{name}:</strong> {config['description']}</p>"
-                caption_info_html += "</div>"
-                gr.HTML(caption_info_html)
+                        
+                        video_output = gr.Textbox(
+                            label="Generated Video Prompt",
+                            lines=15,
+                            interactive=False,
+                            show_copy_button=True
+                        )
                 
                 # Wire up image analysis events
                 analyze_btn.click(
                     fn=analyze_uploaded_image,
                     inputs=[image_input, caption_model_dropdown],
-                    outputs=[caption_output, description_output],
+                    outputs=[image_caption, image_description],
                     show_progress=True
                 )
-            
-            # RESTORED: Image to Video Tab
-            with gr.Tab("🖼️➡️🎬 Image to Video"):
-                gr.Markdown("## Convert Images to Video Prompts")
-                gr.Markdown("Upload an image and get a detailed video prompt that brings it to life with motion and dynamics.")
                 
-                with gr.Row():
-                    with gr.Column():
-                        video_image_input = gr.Image(
-                            label="Upload Image for Video Conversion",
-                            type="pil",
-                            height=400
-                        )
-                        
-                        user_request_input = gr.Textbox(
-                            label="Additional Requirements (Optional)",
-                            placeholder="e.g., 'focus on facial expressions', 'add romantic lighting', 'include gentle movements'...",
-                            lines=3
-                        )
-                        
-                        video_generate_btn = gr.Button("🎬 Generate Video Prompt", variant="primary", size="lg")
-                        
-                    with gr.Column():
-                        video_prompt_output = gr.Textbox(
-                            label="Generated Video Prompt",
-                            lines=25,
-                            max_lines=35,
-                            interactive=False,
-                        )
-                
-                # Wire up image to video events
-                video_generate_btn.click(
+                video_btn.click(
                     fn=generate_video_prompt_from_image,
-                    inputs=[video_image_input, user_request_input],
-                    outputs=video_prompt_output,
+                    inputs=[image_input, video_request_input],
+                    outputs=video_output,
                     show_progress=True
                 )
             
             # Prompt Analysis Tab
-            with gr.Tab("⚙️ Prompt Analysis"):
-                gr.Markdown("## Analyze Prompt Complexity & Get SD Forge Parameters")
-                gr.Markdown("Analyze your prompts and get optimized Stable Diffusion Forge parameters for best results.")
+            with gr.Tab("🔍 Prompt Analysis"):
+                gr.Markdown("## Analyze Prompt Complexity and Get SD Forge Parameters")
                 
                 with gr.Row():
                     with gr.Column():
-                        analysis_prompt_input = gr.Textbox(
+                        analysis_input = gr.Textbox(
                             label="Prompt to Analyze",
                             placeholder="Enter your image generation prompt here...",
-                            lines=6
+                            lines=5
                         )
                         
-                        analyze_complexity_btn = gr.Button("🔍 Analyze Complexity", variant="primary", size="lg")
-                        
+                        analyze_complexity_btn = gr.Button("🔍 Analyze Complexity", variant="primary")
+                    
                     with gr.Column():
                         complexity_output = gr.Textbox(
                             label="Complexity Analysis",
-                            lines=15,
-                            interactive=False,
+                            lines=10,
+                            interactive=False
                         )
                         
-                        parameters_output = gr.Textbox(
+                        params_output = gr.Textbox(
                             label="Recommended SD Forge Parameters",
-                            lines=15,
+                            lines=10,
                             interactive=False,
+                            show_copy_button=True
                         )
                 
                 # Wire up prompt analysis events
                 analyze_complexity_btn.click(
                     fn=analyze_prompt_complexity,
-                    inputs=analysis_prompt_input,
-                    outputs=[complexity_output, parameters_output],
-                    show_progress=True
+                    inputs=analysis_input,
+                    outputs=[complexity_output, params_output]
                 )
             
-            # Conversation Management Tab
-            with gr.Tab("💬 Conversation Management"):
-                gr.Markdown("## Manage Conversation History")
+            # History & Export Tab
+            with gr.Tab("📚 History & Export"):
+                gr.Markdown("## Conversation History and Export")
                 
                 with gr.Row():
                     with gr.Column():
                         clear_btn = gr.Button("🗑️ Clear History", variant="secondary")
-                        export_btn = gr.Button("📥 Export History", variant="secondary")
-                        
+                        export_btn = gr.Button("📤 Export Conversation", variant="primary")
+                    
                     with gr.Column():
-                        management_status = gr.Textbox(
+                        history_status = gr.Textbox(
                             label="Status",
                             interactive=False,
                             lines=3
                         )
                 
-                # Display current conversation count
-                def get_conversation_count():
-                    return f"Current conversations in memory: {len(chatbot.conversation_history)}"
-                
-                conversation_count = gr.Textbox(
-                    label="Conversation Statistics",
-                    value=get_conversation_count(),
-                    interactive=False
+                gr.Markdown("### Recent Conversations")
+                conversation_display = gr.JSON(
+                    label="Conversation History",
+                    value=lambda: chatbot.conversation_history[-5:] if chatbot.conversation_history else []
                 )
                 
-                # Wire up conversation management events
+                # Wire up history events
                 clear_btn.click(
                     fn=clear_conversation,
-                    outputs=management_status
+                    outputs=history_status
                 )
                 
                 export_btn.click(
                     fn=export_conversation,
-                    outputs=management_status
+                    outputs=history_status
                 )
-        
-        # Footer
-        gr.HTML("""
-        <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
-            <p><strong>Fanvue Chatbot v2.1.0</strong> - Advanced AI Assistant for Adult Content Creation</p>
-            <p>⚠️ For adult content creators (18+) only. Use responsibly and in compliance with applicable laws.</p>
-        </div>
-        """)
     
     return interface
 
@@ -924,13 +890,12 @@ if __name__ == "__main__":
     # Create and launch the interface
     interface = create_interface()
     
-    print("✅ Interface created successfully!")
-    print("🌐 Launching on http://localhost:7861")
-    
+    # Launch with custom settings
     interface.launch(
         server_name="0.0.0.0",
-        server_port=7861,
+        server_port=7860,
         share=False,
+        debug=False,
         show_error=True,
-        enable_queue=True
+        quiet=False
     )

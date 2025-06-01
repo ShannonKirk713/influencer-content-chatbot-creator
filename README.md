@@ -101,6 +101,51 @@ python main.py
    python main.py
    ```
 
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**"'enable_queue' parameter not found" Error**:
+This indicates an outdated Gradio version. The current version is compatible with Gradio 4.0+. To fix:
+
+1. **Clear caches and reinstall**:
+   ```bash
+   pip cache purge
+   pip uninstall gradio
+   pip install --no-cache-dir "gradio>=4.0.0"
+   ```
+
+2. **For persistent issues, see our comprehensive cache clearing guide**:
+   - [Cache Clearing Guide](docs/CACHE_CLEARING_GUIDE.md)
+
+**Model won't load**:
+- Check available RAM (8GB+ required)
+- Try a smaller model (Luna-AI instead of Wizard-Vicuna)
+- Restart the application
+
+**Slow generation**:
+- Enable GPU acceleration if available
+- Reduce max tokens
+- Use a smaller model
+
+**Installation fails**:
+- Ensure Python 3.8+ is installed
+- Check internet connection for model download
+- Try manual installation steps
+
+**Windows batch files don't work**:
+- Run Command Prompt as Administrator
+- Check Python is in PATH
+- Use manual installation method
+
+### Getting Help
+
+1. Check the [Cache Clearing Guide](docs/CACHE_CLEARING_GUIDE.md) for cache-related issues
+2. Check the logs in the `logs/` directory
+3. Review the console output for error messages
+4. Ensure all requirements are met
+5. Try the manual installation method
+
 ## 🎯 Usage Guide
 
 ### Getting Started
@@ -153,45 +198,17 @@ pip install ctransformers[metal]
 fanvue-content-chatbot/
 ├── main.py              # Main application file
 ├── prompt_utils.py      # Prompt templates and utilities
+├── image_analyzer.py    # Image analysis functionality
 ├── setup.py            # Setup and model download script
 ├── requirements.txt    # Python dependencies
 ├── install.bat         # Windows installation script
 ├── start.bat          # Windows startup script
+├── docs/              # Documentation
+│   └── CACHE_CLEARING_GUIDE.md  # Comprehensive cache clearing guide
 ├── models/            # Downloaded AI models
 ├── exports/           # Exported content
 └── logs/             # Application logs
 ```
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**Model won't load**:
-- Check available RAM (8GB+ required)
-- Try a smaller model (Luna-AI instead of Wizard-Vicuna)
-- Restart the application
-
-**Slow generation**:
-- Enable GPU acceleration if available
-- Reduce max tokens
-- Use a smaller model
-
-**Installation fails**:
-- Ensure Python 3.8+ is installed
-- Check internet connection for model download
-- Try manual installation steps
-
-**Windows batch files don't work**:
-- Run Command Prompt as Administrator
-- Check Python is in PATH
-- Use manual installation method
-
-### Getting Help
-
-1. Check the logs in the `logs/` directory
-2. Review the console output for error messages
-3. Ensure all requirements are met
-4. Try the manual installation method
 
 ## ⚠️ Important Notes
 
@@ -228,7 +245,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙏 Acknowledgments
 
 - Built with [Gradio](https://gradio.app/) for the web interface
-- Uses [ctransformers](https://github.com/marella/ctransformers) for model inference
+- Uses [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) for model inference
 - Models from [TheBloke](https://huggingface.co/TheBloke) on Hugging Face
 - Inspired by the adult content creator community
 
