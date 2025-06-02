@@ -1,10 +1,10 @@
-
 #!/usr/bin/env python3
 """
 Image Analysis Module for Fanvue Chatbot
 Uses BLIP model for image captioning and analysis
 Enhanced with better error handling, progress tracking, and detailed descriptions
 FIXED: Improved video prompt generation to actually analyze uploaded images
+FIXED: Improved temporary file handling to prevent path errors
 """
 
 import logging
@@ -13,6 +13,8 @@ from typing import Optional, Dict, Any
 import torch
 from tqdm import tqdm
 import sys
+import tempfile
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,33 @@ class ImageAnalyzer:
         self.processor = None
         self.model = None
         self.model_loaded = False
+        
+    def _create_temp_image_file(self, image: Image.Image, suffix: str = ".jpg") -> str:
+        """
+        Create a temporary image file from PIL Image.
+        Returns the path to the temporary file.
+        """
+        try:
+            # Create a temporary file with proper cleanup
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+            temp_path = temp_file.name
+            temp_file.close()
+            
+            # Save the image to the temporary file
+            image.save(temp_path, format='JPEG' if suffix.lower() == '.jpg' else 'PNG')
+            
+            return temp_path
+        except Exception as e:
+            logger.error(f"Error creating temporary image file: {e}")
+            raise
+    
+    def _cleanup_temp_file(self, file_path: str):
+        """Clean up temporary file safely."""
+        try:
+            if os.path.exists(file_path):
+                os.unlink(file_path)
+        except Exception as e:
+            logger.warning(f"Could not clean up temporary file {file_path}: {e}")
         
     def load_model(self, progress_callback=None) -> bool:
         """Load BLIP model for image captioning with progress tracking."""
