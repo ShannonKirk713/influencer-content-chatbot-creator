@@ -1,5 +1,5 @@
 # Core dependencies from original fanvue-content-chatbot
-gradio==3.50.0
+gradio==5.32.0
 llama-cpp-python
 transformers==4.35.0
 torch==2.1.0
