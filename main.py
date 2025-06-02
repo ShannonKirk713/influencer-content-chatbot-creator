@@ -47,13 +47,13 @@ class InfluencerChatbot:
             "Luna-AI-Llama2-Uncensored": {
                 "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                 "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                "template": "USER: {prompt}\nASSISTANT:",
+                "template": "USER: {prompt}\\nASSISTANT:",
                 "description": "Efficient 7B uncensored model, good for most adult content tasks"
             },
             "WizardLM-13B-Uncensored": {
                 "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
                 "filename": "wizardlm-13b-uncensored.Q4_K_M.gguf",
-                "template": "You are a helpful AI assistant.\n\nUSER: {prompt}\nASSISTANT:",
+                "template": "You are a helpful AI assistant.\\n\\nUSER: {prompt}\\nASSISTANT:",
                 "description": "Balanced 13B uncensored model, high quality responses"
             },
             "Wizard-Vicuna-30B-Uncensored": {
@@ -65,50 +65,50 @@ class InfluencerChatbot:
             "Nous-Hermes-13B-Uncensored": {
                 "repo_id": "TheBloke/Nous-Hermes-13b-GGUF",
                 "filename": "nous-hermes-13b.Q4_K_M.gguf",
-                "template": "### Instruction:\n{prompt}\n\n### Response:",
+                "template": "### Instruction:\\n{prompt}\\n\\n### Response:",
                 "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
             },
             # Modern TheBloke models
             "Llama-3.2-3B-Instruct": {
                 "repo_id": "TheBloke/Llama-3.2-3B-Instruct-GGUF",
                 "filename": "llama-3.2-3b-instruct-q4_k_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Fast 3B model, good for quick responses"
             },
             "Llama-3.1-8B-Instruct": {
                 "repo_id": "TheBloke/Llama-3.1-8B-Instruct-GGUF",
                 "filename": "llama-3.1-8b-instruct-q4_k_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Balanced 8B model, good quality and speed"
             },
             "Qwen2.5-14B-Instruct": {
                 "repo_id": "TheBloke/Qwen2.5-14B-Instruct-GGUF",
                 "filename": "qwen2.5-14b-instruct-q4_k_m.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "High-quality 14B model, excellent for detailed content"
             },
             "Llama-3.1-70B-Instruct": {
                 "repo_id": "TheBloke/Llama-3.1-70B-Instruct-GGUF",
                 "filename": "llama-3.1-70b-instruct-iq2_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Premium 70B model, best quality (requires powerful hardware)"
             },
             "Goliath-120B": {
                 "repo_id": "TheBloke/goliath-120b-GGUF",
                 "filename": "goliath-120b-q2_k.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "Ultra-high-end 120B model, exceptional quality (requires very powerful hardware)"
             },
             "DeepSeek-V2.5": {
                 "repo_id": "TheBloke/DeepSeek-V2.5-GGUF",
                 "filename": "deepseek-v2.5-q4_k_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Advanced reasoning model, great for complex prompts"
             },
             "Mixtral-8x22B-Instruct": {
                 "repo_id": "TheBloke/Mixtral-8x22B-Instruct-v0.1-GGUF",
                 "filename": "mixtral-8x22b-instruct-v0.1-q2_k.gguf",
-                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "template": "<s>[INST] {system}\\n\\n{prompt} [/INST]",
                 "description": "High-end mixture of experts model, excellent quality"
             }
         }
@@ -350,7 +350,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 self.model_configs[model_name] = {
                     "repo_id": repo_id,
                     "filename": filename,
-                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                     "description": f"Custom model from {repo_id}"
                 }
             
@@ -382,12 +382,12 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             final_prompt = prompt
             if main_influencer.strip():
                 # If Main Influencer is provided, incorporate it into the prompt
-                final_prompt = f"Main Influencer: {main_influencer.strip()}\n\nRequest: {prompt}"
+                final_prompt = f"Main Influencer: {main_influencer.strip()}\\n\\nRequest: {prompt}"
             else:
                 # If Main Influencer is empty, generate diverse appearance for image/video prompts
                 if content_type in ["image_prompt", "video_prompt", "image_to_video"]:
                     diverse_appearance = self.generate_diverse_appearance()
-                    final_prompt = f"Subject appearance: {diverse_appearance}\n\nRequest: {prompt}"
+                    final_prompt = f"Subject appearance: {diverse_appearance}\\n\\nRequest: {prompt}"
             
             # Format the full prompt based on model type
             model_config = self.model_configs[self.current_model]
@@ -402,7 +402,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             else:
                 # Legacy format - combine system and user prompt
                 full_prompt = model_config["template"].format(
-                    prompt=f"{system_prompt}\n\nUser Request: {final_prompt}"
+                    prompt=f"{system_prompt}\\n\\nUser Request: {final_prompt}"
                 )
             
             progress(0.3, "Generating response...")
@@ -413,7 +413,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\n\nUSER:", "\n\nASSISTANT:"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\n\\nUSER:", "\\n\\nASSISTANT:"],
                 echo=False
             )
             
@@ -434,7 +434,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             self.conversation_history.append(conversation_entry)
             
             # Save to text file
-            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\n\n{prompt}", generated_text, content_type)
+            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\\n\\n{prompt}", generated_text, content_type)
             
             progress(1.0, "Response generated!")
             print(f"✅ Response generated successfully ({len(generated_text)} characters)")
@@ -564,7 +564,7 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\n"
+                analysis_text += f"- {category.title()}: {count} terms\\n"
         
         # Format SD Forge parameters in Flux format with automatic selections
         params_text = f"""⚙️ **Automatically Recommended Stable Diffusion Forge Parameters (Flux Format)**
@@ -805,8 +805,7 @@ def create_interface():
                     with gr.Column():
                         image_input = gr.Image(
                             label="Upload Image",
-                            type="pil",
-                            info="Upload an image for analysis"
+                            type="pil"
                         )
                         
                         caption_model_dropdown = gr.Dropdown(
