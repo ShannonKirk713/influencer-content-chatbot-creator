@@ -47,25 +47,25 @@ class InfluencerChatbot:
             "Llama-3.2-3B-Instruct": {
                 "repo_id": "meta-llama/Llama-3.2-3B-Instruct",
                 "filename": "*.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Fast 3B Llama model, good for quick responses"
             },
             "Llama-3.1-8B-Instruct": {
                 "repo_id": "meta-llama/Llama-3.1-8B-Instruct",
                 "filename": "*.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Balanced 8B Llama model, excellent quality and speed"
             },
             "Llama-3.1-70B-Instruct": {
                 "repo_id": "meta-llama/Llama-3.1-70B-Instruct",
                 "filename": "*.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Premium 70B Llama model, exceptional quality (requires powerful hardware)"
             },
             "CodeLlama-34B-Instruct": {
                 "repo_id": "codellama/CodeLlama-34b-Instruct-hf",
                 "filename": "*.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Code-specialized Llama model, great for technical content"
             },
             
@@ -73,25 +73,25 @@ class InfluencerChatbot:
             "Qwen2.5-7B-Instruct": {
                 "repo_id": "Qwen/Qwen2.5-7B-Instruct",
                 "filename": "*.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "High-quality 7B Qwen model, excellent for detailed content"
             },
             "Qwen2.5-14B-Instruct": {
                 "repo_id": "Qwen/Qwen2.5-14B-Instruct",
                 "filename": "*.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "Premium 14B Qwen model, exceptional reasoning capabilities"
             },
             "Qwen2.5-32B-Instruct": {
                 "repo_id": "Qwen/Qwen2.5-32B-Instruct",
                 "filename": "*.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "High-end 32B Qwen model, superior quality (requires powerful hardware)"
             },
             "Qwen2.5-Coder-7B-Instruct": {
                 "repo_id": "Qwen/Qwen2.5-Coder-7B-Instruct",
                 "filename": "*.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "Code-specialized Qwen model, excellent for technical tasks"
             },
             
@@ -99,19 +99,19 @@ class InfluencerChatbot:
             "Mistral-7B-Instruct-v0.3": {
                 "repo_id": "mistralai/Mistral-7B-Instruct-v0.3",
                 "filename": "*.gguf",
-                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "template": "<s>[INST] {system}\\n\\n{prompt} [/INST]",
                 "description": "Efficient 7B Mistral model, balanced performance"
             },
             "Mixtral-8x7B-Instruct-v0.1": {
                 "repo_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
                 "filename": "*.gguf",
-                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "template": "<s>[INST] {system}\\n\\n{prompt} [/INST]",
                 "description": "Mixture of experts model, excellent quality and efficiency"
             },
             "Mixtral-8x22B-Instruct-v0.1": {
                 "repo_id": "mistralai/Mixtral-8x22B-Instruct-v0.1",
                 "filename": "*.gguf",
-                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "template": "<s>[INST] {system}\\n\\n{prompt} [/INST]",
                 "description": "High-end mixture of experts, premium quality (requires powerful hardware)"
             },
             
@@ -119,13 +119,13 @@ class InfluencerChatbot:
             "Phi-3-Mini-4K-Instruct": {
                 "repo_id": "microsoft/Phi-3-mini-4k-instruct",
                 "filename": "*.gguf",
-                "template": "<|user|>\n{system}\n\n{prompt}<|end|>\n<|assistant|>\n",
+                "template": "<|user|>\\n{system}\\n\\n{prompt}<|end|>\\n<|assistant|>\\n",
                 "description": "Compact 3.8B Phi model, efficient and capable"
             },
             "Phi-3-Medium-4K-Instruct": {
                 "repo_id": "microsoft/Phi-3-medium-4k-instruct",
                 "filename": "*.gguf",
-                "template": "<|user|>\n{system}\n\n{prompt}<|end|>\n<|assistant|>\n",
+                "template": "<|user|>\\n{system}\\n\\n{prompt}<|end|>\\n<|assistant|>\\n",
                 "description": "Balanced 14B Phi model, high quality responses"
             },
             
@@ -133,13 +133,13 @@ class InfluencerChatbot:
             "Gemma-2-9B-IT": {
                 "repo_id": "google/gemma-2-9b-it",
                 "filename": "*.gguf",
-                "template": "<start_of_turn>user\n{system}\n\n{prompt}<end_of_turn>\n<start_of_turn>model\n",
+                "template": "<start_of_turn>user\\n{system}\\n\\n{prompt}<end_of_turn>\\n<start_of_turn>model\\n",
                 "description": "Google's 9B Gemma model, excellent reasoning"
             },
             "Gemma-2-27B-IT": {
                 "repo_id": "google/gemma-2-27b-it",
                 "filename": "*.gguf",
-                "template": "<start_of_turn>user\n{system}\n\n{prompt}<end_of_turn>\n<start_of_turn>model\n",
+                "template": "<start_of_turn>user\\n{system}\\n\\n{prompt}<end_of_turn>\\n<start_of_turn>model\\n",
                 "description": "High-end 27B Gemma model, superior quality (requires powerful hardware)"
             },
             
@@ -147,13 +147,13 @@ class InfluencerChatbot:
             "DeepSeek-V2.5": {
                 "repo_id": "deepseek-ai/DeepSeek-V2.5",
                 "filename": "*.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Advanced reasoning model, excellent for complex prompts"
             },
             "DeepSeek-Coder-V2-Lite-Instruct": {
                 "repo_id": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
                 "filename": "*.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Code-specialized DeepSeek model, excellent for technical content"
             },
             
@@ -161,13 +161,13 @@ class InfluencerChatbot:
             "Luna-AI-Llama2-Uncensored": {
                 "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                 "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                "template": "USER: {prompt}\nASSISTANT:",
+                "template": "USER: {prompt}\\nASSISTANT:",
                 "description": "Efficient 7B uncensored model, good for adult content tasks"
             },
             "WizardLM-13B-Uncensored": {
                 "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
                 "filename": "wizardlm-13b-uncensored.Q4_K_M.gguf",
-                "template": "You are a helpful AI assistant.\n\nUSER: {prompt}\nASSISTANT:",
+                "template": "You are a helpful AI assistant.\\n\\nUSER: {prompt}\\nASSISTANT:",
                 "description": "Balanced 13B uncensored model, high quality responses"
             },
             "Wizard-Vicuna-30B-Uncensored": {
@@ -179,7 +179,7 @@ class InfluencerChatbot:
             "Nous-Hermes-13B-Uncensored": {
                 "repo_id": "TheBloke/Nous-Hermes-13b-GGUF",
                 "filename": "nous-hermes-13b.Q4_K_M.gguf",
-                "template": "### Instruction:\n{prompt}\n\n### Response:",
+                "template": "### Instruction:\\n{prompt}\\n\\n### Response:",
                 "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
             },
             
@@ -187,19 +187,19 @@ class InfluencerChatbot:
             "Dolphin-2.9-Llama3-8B": {
                 "repo_id": "cognitivecomputations/dolphin-2.9-llama3-8b",
                 "filename": "*.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                 "description": "Uncensored Dolphin model, excellent for creative tasks"
             },
             "OpenHermes-2.5-Mistral-7B": {
                 "repo_id": "teknium/OpenHermes-2.5-Mistral-7B",
                 "filename": "*.gguf",
-                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
                 "description": "High-quality instruction-tuned model, versatile and capable"
             },
             "Starling-LM-7B-Alpha": {
                 "repo_id": "berkeley-nest/Starling-LM-7B-alpha",
                 "filename": "*.gguf",
-                "template": "GPT4 Correct User: {system}\n\n{prompt}<|end_of_turn|>GPT4 Correct Assistant:",
+                "template": "GPT4 Correct User: {system}\\n\\n{prompt}<|end_of_turn|>GPT4 Correct Assistant:",
                 "description": "High-performance 7B model trained with RLAIF"
             }
         }
@@ -248,6 +248,26 @@ Focus on natural movements and adult themes. Keep descriptions 80-100 words opti
                     "Generate a slow-motion silk fabric reveal sequence",
                     "Design a passionate embrace and kiss scene",
                     "Create a seductive getting-ready routine video"
+                ]
+            },
+            # RESTORED: Image to Video functionality
+            "image_to_video": {
+                "system": """You are an expert at converting static image descriptions into dynamic video prompts for adult content. Analyze the image description and add natural motion elements following Wan2.1 principles:
+
+🖼️ IMAGE ANALYSIS: [Analyze the provided image description]
+🎬 VIDEO CONCEPT: [How to bring the image to life]
+🎭 ADDED MOTION: [Natural movements and actions to add]
+📹 CAMERA DYNAMICS: [Camera movements to enhance the scene]
+🎨 ENHANCED ATMOSPHERE: [Additional atmospheric elements for video]
+⏱️ SEQUENCE FLOW: [How the video should progress]
+
+Transform static concepts into engaging motion while maintaining adult content focus.""",
+                "examples": [
+                    "Convert this image prompt into a video: 'Sensual portrait of a woman in lingerie'",
+                    "Transform a bedroom scene into dynamic video content",
+                    "Add motion to a boudoir photography concept",
+                    "Create video dynamics from a romantic portrait",
+                    "Convert static intimate scene to flowing video"
                 ]
             },
             "general_chat": {
@@ -306,13 +326,13 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             filename = f"{self.history_folder}/conversation_{date_str}.txt"
             
             with open(filename, "a", encoding="utf-8") as f:
-                f.write(f"\n{'='*80}\n")
-                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Content Type: {content_type}\n")
-                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\n")
-                f.write(f"{'='*80}\n")
-                f.write(f"USER PROMPT:\n{prompt}\n")
-                f.write(f"\nAI RESPONSE:\n{response}\n")
+                f.write(f"\\n{'='*80}\\n")
+                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\\n")
+                f.write(f"Content Type: {content_type}\\n")
+                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\\n")
+                f.write(f"{'='*80}\\n")
+                f.write(f"USER PROMPT:\\n{prompt}\\n")
+                f.write(f"\\nAI RESPONSE:\\n{response}\\n")
                 
             print(f"💾 Conversation saved to {filename}")
             
@@ -358,7 +378,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                     self.model_configs[model_name] = {
                         "repo_id": model_id,
                         "filename": "*.gguf",
-                        "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                        "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                         "description": f"Discovered model from {model_id}"
                     }
                     new_models_added += 1
@@ -514,7 +534,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 self.model_configs[model_name] = {
                     "repo_id": repo_id,
                     "filename": filename if filename and "*" not in filename else "*.gguf",
-                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
                     "description": f"Custom model from {repo_id}"
                 }
             
@@ -546,12 +566,12 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             final_prompt = prompt
             if main_influencer.strip():
                 # If Main Influencer is provided, incorporate it into the prompt
-                final_prompt = f"Main Influencer: {main_influencer.strip()}\n\nRequest: {prompt}"
+                final_prompt = f"Main Influencer: {main_influencer.strip()}\\n\\nRequest: {prompt}"
             else:
                 # If Main Influencer is empty, generate diverse appearance for image/video prompts
-                if content_type in ["image_prompt", "video_prompt"]:
+                if content_type in ["image_prompt", "video_prompt", "image_to_video"]:
                     diverse_appearance = self.generate_diverse_appearance()
-                    final_prompt = f"Subject appearance: {diverse_appearance}\n\nRequest: {prompt}"
+                    final_prompt = f"Subject appearance: {diverse_appearance}\\n\\nRequest: {prompt}"
             
             # Format the full prompt based on model type
             model_config = self.model_configs[self.current_model]
@@ -566,7 +586,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             else:
                 # Legacy format - combine system and user prompt
                 full_prompt = model_config["template"].format(
-                    prompt=f"{system_prompt}\n\nUser Request: {final_prompt}"
+                    prompt=f"{system_prompt}\\n\\nUser Request: {final_prompt}"
                 )
             
             progress(0.3, "Generating response...")
@@ -577,7 +597,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\n\nUSER:", "\n\nASSISTANT:", "<|end_of_turn|>", "<end_of_turn>"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\n\\nUSER:", "\\n\\nASSISTANT:", "<|end_of_turn|>", "<end_of_turn>"],
                 echo=False
             )
             
@@ -598,7 +618,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             self.conversation_history.append(conversation_entry)
             
             # Save to text file
-            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\n\n{prompt}", generated_text, content_type)
+            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\\n\\n{prompt}", generated_text, content_type)
             
             progress(1.0, "Response generated!")
             print(f"✅ Response generated successfully ({len(generated_text)} characters)")
@@ -670,7 +690,7 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\n"
+                analysis_text += f"- {category.title()}: {count} terms\\n"
         
         # Format SD Forge parameters in Flux format with automatic selections
         params_text = f"""⚙️ **Automatically Recommended Stable Diffusion Forge Parameters (Flux Format)**
@@ -872,10 +892,27 @@ def create_interface():
             
             # Content Generation Tab
             with gr.Tab("✨ Content Generation"):
+                # Add workflow instructions
+                gr.HTML("""
+                <div class="workflow-instructions">
+                    <h3>🎯 Optional Video Prompt Workflow Instructions</h3>
+                    <p><strong>For creating video content from image prompts, follow this step-by-step process:</strong></p>
+                    <ol>
+                        <li><strong>Step 1:</strong> Select "image_prompt" from the Content Type dropdown</li>
+                        <li><strong>Step 2:</strong> Generate your image prompt content using the AI</li>
+                        <li><strong>Step 3:</strong> Copy the generated image prompt from the output</li>
+                        <li><strong>Step 4:</strong> Paste it back into the "Your Request" box</li>
+                        <li><strong>Step 5:</strong> Change Content Type to "image_to_video"</li>
+                        <li><strong>Step 6:</strong> Generate again to transform your image prompt into a dynamic video prompt</li>
+                    </ol>
+                    <p><em>This workflow allows you to create comprehensive video prompts that build upon detailed image descriptions, ensuring consistency and quality in your content creation process.</em></p>
+                </div>
+                """)
+                
                 with gr.Row():
                     with gr.Column(scale=2):
                         content_type = gr.Dropdown(
-                            choices=["image_prompt", "video_prompt", "general_chat"],
+                            choices=["image_prompt", "video_prompt", "image_to_video", "general_chat"],
                             value="image_prompt",
                             label="Content Type",
                             info="Select the type of content to generate"
