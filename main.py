@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 Influencer Chatbot - Advanced AI Assistant for Adult Content Creation
-Enhanced with intelligent prompt analysis and dynamic parameter optimization
+Enhanced with intelligent prompt analysis, advanced image analysis, auto-open webpage, and dynamic parameter optimization
 """
 
 import gradio as gr
 import json
 import os
 import logging
+import webbrowser
+from threading import Timer
 from datetime import datetime
 from typing import List, Tuple, Optional
 from PIL import Image
@@ -21,6 +23,16 @@ from sd_forge_utils import PromptComplexityAnalyzer, SDForgeParams
 from prompt_analyzer import IntelligentPromptAnalyzer, ComplexityLevel, ContentType
 from api_wrapper import PromptAnalysisAPI
 
+# Enhanced image analysis modules (CLIP, YOLO, SAM, GPT-4V)
+try:
+    from vision.analyze import ImageAnalyzer
+    from vision.generate_video import VideoGenerator
+    from utils.args_compat import get_compatible_args
+    ENHANCED_VISION_AVAILABLE = True
+except ImportError:
+    ENHANCED_VISION_AVAILABLE = False
+    print("⚠️ Enhanced vision modules not available. Basic image analysis will be used.")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -31,6 +43,14 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+def auto_open_browser():
+    """Auto-open browser functionality"""
+    try:
+        webbrowser.open('http://127.0.0.1:7861')
+        print("🌐 Browser opened automatically at http://127.0.0.1:7861")
+    except Exception as e:
+        print(f"⚠️ Could not auto-open browser: {e}")
 
 class InfluencerChatbot:
     """Main chatbot class with model management and content generation."""
@@ -47,6 +67,11 @@ class InfluencerChatbot:
         
         # Keep legacy analyzer for backward compatibility
         self.complexity_analyzer = PromptComplexityAnalyzer()
+        
+        # Initialize enhanced vision components if available
+        if ENHANCED_VISION_AVAILABLE:
+            self.enhanced_image_analyzer = ImageAnalyzer()
+            self.video_generator = VideoGenerator()
         
         # Create history folder
         os.makedirs(self.history_folder, exist_ok=True)
@@ -486,6 +511,7 @@ def generate_content(prompt: str, content_type: str, main_influencer: str, tempe
 def analyze_uploaded_image(image: Image.Image, caption_model: str, progress=gr.Progress()) -> Tuple[str, str]:
     """
     Analyze uploaded image and return caption and detailed description.
+    Enhanced with CLIP, YOLO, SAM, and GPT-4V analysis when available.
     """
     if image is None:
         return "❌ No image uploaded", ""
@@ -494,30 +520,58 @@ def analyze_uploaded_image(image: Image.Image, caption_model: str, progress=gr.P
         print(f"🖼️ Analyzing image with {caption_model} model...")
         progress(0.1, f"Loading {caption_model} model...")
         
-        # For now, use the default BLIP model regardless of selection
-        # In a full implementation, you would switch models based on caption_model parameter
-        result = image_analyzer.analyze_image(image)
-        
-        if result["success"]:
-            caption = result["caption"]
-            detailed_description = result["detailed_description"]
+        # Use enhanced analysis if available
+        if ENHANCED_VISION_AVAILABLE:
+            # Save image temporarily for enhanced analysis
+            temp_path = "/tmp/temp_image.jpg"
+            image.save(temp_path)
             
-            progress(1.0, "Analysis complete!")
-            print(f"✅ Image analysis completed")
+            # Stage 1: Comprehensive analysis with CLIP, YOLO, SAM, GPT-4V
+            analysis_result = chatbot.enhanced_image_analyzer.analyze_comprehensive(temp_path)
             
-            return caption, detailed_description
+            progress(0.8, "Processing enhanced analysis...")
+            
+            # Format results
+            caption = analysis_result.get('caption', 'No caption available')
+            detailed_description = analysis_result.get('detailed_description', 'No detailed description available')
+            
+            # Add enhanced analysis details
+            if 'clip_analysis' in analysis_result:
+                detailed_description += f"\n\n🔍 CLIP Analysis: {analysis_result['clip_analysis']}"
+            if 'yolo_detections' in analysis_result:
+                detailed_description += f"\n\n🎯 YOLO Detections: {analysis_result['yolo_detections']}"
+            if 'sam_segments' in analysis_result:
+                detailed_description += f"\n\n🎨 SAM Segments: {analysis_result['sam_segments']}"
+            if 'gpt4v_analysis' in analysis_result:
+                detailed_description += f"\n\n🧠 GPT-4V Analysis: {analysis_result['gpt4v_analysis']}"
+            
+            # Clean up temp file
+            os.remove(temp_path)
+            
         else:
-            error_msg = f"❌ Image analysis failed: {result['error']}"
-            print(error_msg)
-            return error_msg, ""
+            # Fallback to basic analysis
+            result = image_analyzer.analyze_image(image)
             
+            if result["success"]:
+                caption = result["caption"]
+                detailed_description = result["detailed_description"]
+            else:
+                error_msg = f"❌ Image analysis failed: {result['error']}"
+                print(error_msg)
+                return error_msg, ""
+        
+        progress(1.0, "Analysis complete!")
+        print(f"✅ Image analysis completed")
+        
+        return caption, detailed_description
+        
     except Exception as e:
         error_msg = f"❌ Error analyzing image: {str(e)}"
         print(error_msg)
         return error_msg, ""
 
 def generate_video_prompt_from_image(image: Image.Image, user_request: str, progress=gr.Progress()) -> str:
-    """Generate video prompt from uploaded image."""
+    """Generate video prompt from uploaded image with enhanced two-stage process."""
     if image is None:
         return "❌ No image uploaded"
     
@@ -525,16 +579,37 @@ def generate_video_prompt_from_image(image: Image.Image, user_request: str, prog
         print("🎬 Generating video prompt from image...")
         progress(0.2, "Analyzing image...")
         
-        # First analyze the image
-        analysis_result = image_analyzer.analyze_image(image)
-        
-        if not analysis_result["success"]:
-            return f"❌ Could not analyze image: {analysis_result['error']}"
-        
-        progress(0.6, "Creating video prompt...")
-        
-        # Generate video prompt based on analysis
-        video_prompt = image_analyzer.generate_video_prompt_from_image(analysis_result, user_request)
+        if ENHANCED_VISION_AVAILABLE:
+            # Enhanced two-stage process
+            temp_path = "/tmp/temp_image_video.jpg"
+            image.save(temp_path)
+            
+            # Stage 1: Comprehensive image analysis
+            analysis_result = chatbot.enhanced_image_analyzer.analyze_comprehensive(temp_path)
+            
+            progress(0.6, "Generating dynamic video prompt...")
+            
+            # Stage 2: Generate dynamic video prompt with CFG=1
+            video_prompt = chatbot.enhanced_image_analyzer.generate_video_prompt(analysis_result)
+            
+            # Add user request if provided
+            if user_request.strip():
+                video_prompt += f"\n\n🎯 User Requirements: {user_request}"
+            
+            # Clean up temp file
+            os.remove(temp_path)
+            
+        else:
+            # Fallback to basic analysis
+            analysis_result = image_analyzer.analyze_image(image)
+            
+            if not analysis_result["success"]:
+                return f"❌ Could not analyze image: {analysis_result['error']}"
+            
+            progress(0.6, "Creating video prompt...")
+            
+            # Generate video prompt based on analysis
+            video_prompt = image_analyzer.generate_video_prompt_from_image(analysis_result, user_request)
         
         progress(1.0, "Video prompt generated!")
         print("✅ Video prompt generated successfully")
@@ -547,7 +622,7 @@ def generate_video_prompt_from_image(image: Image.Image, user_request: str, prog
         return error_msg
 
 def analyze_prompt_complexity_intelligent(prompt: str, sampler: str, scheduler: str, distilled_cfg: float) -> Tuple[str, str]:
-    """Analyze prompt complexity using the new intelligent system with flexible options."""
+    """Analyze prompt complexity using the new intelligent system with automatic CFG=1."""
     if not prompt.strip():
         return "Please enter a prompt to analyze.", ""
     
@@ -555,15 +630,19 @@ def analyze_prompt_complexity_intelligent(prompt: str, sampler: str, scheduler: 
         # Use the new intelligent analysis system
         analysis_result = chatbot.analysis_api.analyze(prompt)
         parameters_result = chatbot.analysis_api.get_optimal_parameters(
-            prompt, sampler, scheduler, distilled_cfg
+            prompt, sampler, scheduler, 1.0  # CFG always set to 1
         )
+        
+        # Override CFG to always be 1
+        parameters_result['cfg_scale'] = 1.0
+        parameters_result['distilled_cfg_scale'] = distilled_cfg
         
         # Format analysis results
         complexity = analysis_result['complexity']
         content = analysis_result['content']
         recommendations = analysis_result['recommendations']
         
-        analysis_text = f"""🔍 **Intelligent Prompt Analysis**
+        analysis_text = f"""🔍 **Intelligent Prompt Analysis (Enhanced)**
 
 **Overall Complexity:** {complexity['level'].title()} ({complexity['score']}/100)
 
@@ -586,8 +665,8 @@ def analyze_prompt_complexity_intelligent(prompt: str, sampler: str, scheduler: 
             if count > 0:
                 analysis_text += f"\n- {category.title()}: {count} terms"
         
-        # Format parameters with user selections
-        params_text = f"""⚙️ **Optimized Generation Parameters**
+        # Format parameters with automatic CFG=1
+        params_text = f"""⚙️ **Optimized Generation Parameters (Enhanced)**
 
 **Flux Model Parameters:**
 Steps: {parameters_result['steps']}, Sampler: {parameters_result['sampler']}, Schedule type: {parameters_result['scheduler']}, CFG scale: {parameters_result['cfg_scale']}, Distilled CFG Scale: {parameters_result['distilled_cfg_scale']}, Seed: {parameters_result['seed']}, Size: {parameters_result['width']}x{parameters_result['height']}
@@ -596,14 +675,14 @@ Steps: {parameters_result['steps']}, Sampler: {parameters_result['sampler']}, Sc
 - Steps: {parameters_result['steps']} (dynamically calculated)
 - Sampler: {parameters_result['sampler']} (user selected)
 - Schedule Type: {parameters_result['scheduler']} (user selected)
-- CFG Scale: {parameters_result['cfg_scale']} (optimized for Flux)
+- CFG Scale: {parameters_result['cfg_scale']} (automatically set to 1.0)
 - Distilled CFG Scale: {parameters_result['distilled_cfg_scale']} (user selected)
 - Seed: {parameters_result['seed']} (use -1 for random)
 - Size: {parameters_result['width']}x{parameters_result['height']} (optimized for content type)
 - Guidance Scale: {parameters_result['guidance_scale']} (for advanced models)
 - Negative Prompt Strength: {parameters_result['negative_prompt_strength']}
 
-**Intelligent Analysis:** Based on your prompt's complexity level ({complexity['level']}), content type ({content['type']}), and technical elements, these parameters are dynamically optimized using research-backed analysis instead of static values."""
+**Enhanced Analysis:** This system automatically sets CFG=1 for maximum creative freedom and uses advanced image analysis with CLIP, YOLO, SAM, and GPT-4V when available. Parameters are dynamically optimized based on prompt complexity ({complexity['level']}) and content type ({content['type']})."""
         
         return analysis_text, params_text
         
@@ -624,9 +703,10 @@ def analyze_prompt_complexity_legacy(prompt: str, sampler: str, scheduler: str, 
         # Get SD Forge recommendations with custom parameters
         sd_params = chatbot.complexity_analyzer.recommend_sd_forge_params(prompt)
         
-        # Override with user selections
+        # Override with user selections and force CFG=1
         sd_params.sampler = sampler
         sd_params.schedule_type = scheduler
+        sd_params.cfg_scale = 1.0  # Always set to 1
         sd_params.distilled_cfg_scale = distilled_cfg
         
         # Format analysis results
@@ -657,18 +737,29 @@ Steps: {sd_params.steps}, Sampler: {sd_params.sampler}, Schedule type: {sd_param
 - Steps: {sd_params.steps} (static: 55)
 - Sampler: {sd_params.sampler} (user selected)
 - Schedule Type: {sd_params.schedule_type} (user selected)
-- CFG Scale: {sd_params.cfg_scale} (always 1 for Flux)
+- CFG Scale: {sd_params.cfg_scale} (automatically set to 1.0)
 - Distilled CFG Scale: {sd_params.distilled_cfg_scale} (user selected)
 - Seed: {sd_params.seed} (use -1 for random)
 - Size: {sd_params.width}x{sd_params.height}
 
-**Note:** This is the legacy analysis system with static parameters. Use the Intelligent Analysis for dynamic optimization."""
+**Note:** This is the legacy analysis system with static parameters and automatic CFG=1. Use the Intelligent Analysis for dynamic optimization with enhanced vision models."""
         
         return analysis_text, params_text
         
     except Exception as e:
         error_msg = f"❌ Error analyzing prompt: {str(e)}"
         return error_msg, ""
+
+def get_compatible_args() -> str:
+    """Get compatible arguments documentation."""
+    if ENHANCED_VISION_AVAILABLE:
+        try:
+            args_list = get_compatible_args()
+            return f"✅ Enhanced vision modules loaded. Compatible arguments:\n\n{args_list}"
+        except Exception as e:
+            return f"⚠️ Error getting compatible args: {str(e)}"
+    else:
+        return "⚠️ Enhanced vision modules not available. Basic functionality only."
 
 def get_example(content_type: str) -> str:
     """Get example prompt for the selected content type."""
@@ -751,6 +842,10 @@ def get_gpu_status():
             f"🐍 Python: {platform.python_version()}"
         ]
         
+        # Enhanced vision status
+        vision_status = "✅ Enhanced vision modules loaded" if ENHANCED_VISION_AVAILABLE else "⚠️ Enhanced vision modules not available"
+        system_info.append(f"🔍 Vision: {vision_status}")
+        
         if gpu_info:
             return "\\n".join(system_info + [""] + gpu_info)
         else:
@@ -763,7 +858,7 @@ def create_interface():
     """Create and configure the Gradio interface."""
     
     with gr.Blocks(
-        title="Influencer Chatbot - Advanced AI Assistant",
+        title="Influencer Chatbot - Enhanced AI Assistant",
         theme=gr.themes.Soft(),
         css="""
         .main-header { text-align: center; margin-bottom: 2rem; }
@@ -786,6 +881,14 @@ def create_interface():
             margin: 1rem 0;
             color: #155724 !important;
         }
+        .new-feature-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            color: #004085 !important;
+        }
         
         /* Dark theme support */
         .dark .warning-box {
@@ -798,6 +901,12 @@ def create_interface():
             background: #155724 !important;
             border: 1px solid #28a745 !important;
             color: #d4edda !important;
+        }
+        
+        .dark .new-feature-box {
+            background: #1e3a8a !important;
+            border: 1px solid #3b82f6 !important;
+            color: #dbeafe !important;
         }
         
         .dark .model-info {
@@ -828,8 +937,24 @@ def create_interface():
         
         gr.HTML("""
         <div class="main-header">
-            <h1>🔥 Influencer Chatbot - Advanced AI Assistant</h1>
-            <p>Professional AI assistant for adult content creation with intelligent prompt analysis, multiple models, image analysis, and comprehensive content generation</p>
+            <h1>🔥 Influencer Chatbot - Enhanced AI Assistant</h1>
+            <p>Professional AI assistant for adult content creation with intelligent prompt analysis, advanced image analysis (CLIP/YOLO/SAM/GPT-4V), auto-open webpage, and comprehensive content generation</p>
+        </div>
+        """)
+        
+        # Enhancement status
+        enhancement_status = "✅ Enhanced vision modules loaded (CLIP, YOLO, SAM, GPT-4V)" if ENHANCED_VISION_AVAILABLE else "⚠️ Enhanced vision modules not available - using basic analysis"
+        
+        gr.HTML(f"""
+        <div class="new-feature-box">
+            <h3>🚀 NEW ENHANCEMENTS INTEGRATED</h3>
+            <ul>
+                <li><strong>Auto-Open Webpage:</strong> Browser automatically opens on startup</li>
+                <li><strong>Automatic Prompt Analysis:</strong> CFG scale automatically set to 1.0 for maximum creative freedom</li>
+                <li><strong>Advanced Image Analysis:</strong> {enhancement_status}</li>
+                <li><strong>Two-Stage Image-to-Video:</strong> Enhanced process with comprehensive analysis</li>
+                <li><strong>ARGS Documentation:</strong> Complete parameter compatibility guide available</li>
+            </ul>
         </div>
         """)
         
@@ -885,17 +1010,19 @@ def create_interface():
                         
                         status_output = gr.Textbox(label="📊 Status", lines=2)
             
-            # Image Analysis Tab
-            with gr.Tab("🖼️ Image Analysis", id="image"):
-                gr.HTML("""
-                <div class="warning-box">
-                    <h3>⚠️ Image Analysis Requirements</h3>
-                    <p>Image analysis requires additional dependencies. If you encounter errors:</p>
-                    <ol>
-                        <li>Install required packages: <code>pip install transformers torch torchvision</code></li>
-                        <li>For GPU acceleration: <code>pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118</code></li>
-                        <li>Restart the application after installation</li>
-                    </ol>
+            # Enhanced Image Analysis Tab
+            with gr.Tab("🖼️ Enhanced Image Analysis", id="image"):
+                gr.HTML(f"""
+                <div class="enhancement-box">
+                    <h3>🚀 Enhanced Image Analysis with CLIP, YOLO, SAM, and GPT-4V</h3>
+                    <p><strong>Status:</strong> {enhancement_status}</p>
+                    <p>This enhanced system provides comprehensive image analysis using multiple AI models:</p>
+                    <ul>
+                        <li><strong>CLIP:</strong> Image-text understanding and semantic analysis</li>
+                        <li><strong>YOLO:</strong> Object detection and localization</li>
+                        <li><strong>SAM:</strong> Segment Anything Model for precise segmentation</li>
+                        <li><strong>GPT-4V:</strong> Advanced visual reasoning and description</li>
+                    </ul>
                 </div>
                 """)
                 
@@ -911,10 +1038,10 @@ def create_interface():
                             choices=list(chatbot.caption_models.keys()),
                             value="BLIP",
                             label="🤖 Caption Model",
-                            info="Select image captioning model (BLIP recommended for speed)"
+                            info="Select image captioning model (enhanced analysis uses all models)"
                         )
                         
-                        analyze_btn = gr.Button("🔍 Analyze Image", variant="primary")
+                        analyze_btn = gr.Button("🔍 Analyze Image (Enhanced)", variant="primary")
                     
                     with gr.Column():
                         image_caption = gr.Textbox(
@@ -924,8 +1051,8 @@ def create_interface():
                         )
                         
                         image_description = gr.Textbox(
-                            label="📋 Detailed Description",
-                            lines=8,
+                            label="📋 Enhanced Analysis Results",
+                            lines=12,
                             show_copy_button=True
                         )
                 
@@ -933,34 +1060,35 @@ def create_interface():
                 
                 with gr.Row():
                     with gr.Column():
-                        gr.HTML("<h3>🎬 Image to Video Prompt Generation</h3>")
+                        gr.HTML("<h3>🎬 Enhanced Two-Stage Image-to-Video Generation</h3>")
                         video_request = gr.Textbox(
                             label="🎯 Video Requirements (Optional)",
                             placeholder="Specify any particular movements, actions, or video style you want...",
                             lines=2
                         )
                         
-                        video_btn = gr.Button("🎬 Generate Video Prompt", variant="secondary")
+                        video_btn = gr.Button("🎬 Generate Video Prompt (Enhanced)", variant="secondary")
                     
                     with gr.Column():
                         video_prompt_output = gr.Textbox(
-                            label="🎥 Generated Video Prompt",
+                            label="🎥 Enhanced Video Prompt (CFG=1)",
                             lines=15,
                             show_copy_button=True
                         )
             
-            # Prompt Analysis Tab
-            with gr.Tab("⚙️ Prompt Analysis", id="analysis"):
+            # Enhanced Prompt Analysis Tab
+            with gr.Tab("⚙️ Enhanced Prompt Analysis", id="analysis"):
                 gr.HTML("""
                 <div class="enhancement-box">
-                    <h3>🚀 NEW: Intelligent Prompt Analysis System</h3>
-                    <p>This system replaces static parameter selection (like fixed 55 steps) with dynamic, research-based analysis that adapts to your prompt's complexity and content type.</p>
+                    <h3>🚀 Enhanced Intelligent Prompt Analysis System</h3>
+                    <p>This enhanced system automatically optimizes parameters and sets CFG=1 for maximum creative freedom:</p>
                     <ul>
+                        <li><strong>Automatic CFG=1:</strong> CFG scale automatically set to 1.0 (no manual selection needed)</li>
                         <li><strong>Dynamic Steps:</strong> Automatically calculates optimal steps (20-80) based on prompt complexity</li>
                         <li><strong>Smart Sampler Selection:</strong> Chooses best sampler based on content type and complexity</li>
-                        <li><strong>Adaptive CFG:</strong> Optimizes CFG scale for your specific prompt</li>
                         <li><strong>Content-Aware:</strong> Recognizes portraits, landscapes, artistic styles, etc.</li>
                         <li><strong>Technical Analysis:</strong> Detects camera, lighting, composition terms</li>
+                        <li><strong>Enhanced Vision Integration:</strong> Works with CLIP, YOLO, SAM, and GPT-4V analysis</li>
                     </ul>
                 </div>
                 """)
@@ -994,22 +1122,44 @@ def create_interface():
                             label="🎚️ Distilled CFG Scale"
                         )
                         
+                        gr.HTML("""
+                        <div class="new-feature-box">
+                            <p><strong>Note:</strong> CFG Scale is automatically set to 1.0 for maximum creative freedom. This cannot be changed.</p>
+                        </div>
+                        """)
+                        
                         with gr.Row():
-                            analyze_intelligent_btn = gr.Button("🧠 Intelligent Analysis", variant="primary")
+                            analyze_intelligent_btn = gr.Button("🧠 Enhanced Intelligent Analysis", variant="primary")
                             analyze_legacy_btn = gr.Button("📊 Legacy Analysis", variant="secondary")
                     
                     with gr.Column():
                         complexity_output = gr.Textbox(
-                            label="📊 Analysis Results",
+                            label="📊 Enhanced Analysis Results",
                             lines=15,
                             show_copy_button=True
                         )
                         
                         parameters_output = gr.Textbox(
-                            label="⚙️ Optimized Parameters",
+                            label="⚙️ Optimized Parameters (CFG=1)",
                             lines=15,
                             show_copy_button=True
                         )
+            
+            # ARGS Documentation Tab
+            with gr.Tab("📚 ARGS Documentation", id="args"):
+                gr.HTML("""
+                <div class="new-feature-box">
+                    <h3>📚 Compatible Arguments Documentation</h3>
+                    <p>Complete documentation of all compatible arguments and parameters for the enhanced system.</p>
+                </div>
+                """)
+                
+                args_btn = gr.Button("📋 Load Compatible Arguments", variant="primary")
+                args_output = gr.Textbox(
+                    label="📋 Compatible Arguments",
+                    lines=25,
+                    show_copy_button=True
+                )
             
             # Model Settings Tab
             with gr.Tab("🤖 Model Settings", id="models"):
@@ -1132,6 +1282,11 @@ def create_interface():
             outputs=[complexity_output, parameters_output]
         )
         
+        args_btn.click(
+            fn=get_compatible_args,
+            outputs=[args_output]
+        )
+        
         clear_btn.click(
             fn=clear_conversation,
             outputs=[status_output]
@@ -1145,15 +1300,19 @@ def create_interface():
     return interface
 
 if __name__ == "__main__":
-    print("🚀 Starting Influencer Chatbot with Intelligent Prompt Analysis...")
+    print("🚀 Starting Enhanced Influencer Chatbot with Advanced Image Analysis...")
     print("📍 Access the interface at: http://localhost:7861")
     
     # Print GPU detection results
     print("\n" + "="*60)
-    print("🎮 RTX GPU DETECTION RESULTS")
+    print("🎮 ENHANCED GPU DETECTION RESULTS")
     print("="*60)
     print(get_gpu_status())
     print("="*60)
+    
+    # Auto-open browser functionality
+    if not os.environ.get("WERKZEUG_RUN_MAIN"):
+        Timer(1.5, auto_open_browser).start()
     
     # Create and launch the interface
     interface = create_interface()
