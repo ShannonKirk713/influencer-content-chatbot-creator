@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Influencer Chatbot - Advanced AI Assistant for Adult Content Creation
-Enhanced with multiple models, image analysis, and comprehensive content generation
+Expanded with comprehensive LLM support, refresh functionality, and streamlined text-only interface
 """
 
 import gradio as gr
@@ -9,12 +9,12 @@ import json
 import os
 import logging
 from datetime import datetime
-from typing import List, Tuple, Optional
-from PIL import Image
+from typing import List, Tuple, Optional, Dict, Any
 import random
+import glob
+from pathlib import Path
 
 # Import our modules
-from image_analyzer import image_analyzer
 from sd_forge_utils import PromptComplexityAnalyzer, SDForgeParams
 
 # Configure logging
@@ -29,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class InfluencerChatbot:
-    """Main chatbot class with model management and content generation."""
+    """Main chatbot class with expanded model management and content generation."""
     
     def __init__(self):
         self.llm = None
@@ -41,19 +41,133 @@ class InfluencerChatbot:
         # Create history folder
         os.makedirs(self.history_folder, exist_ok=True)
         
-        # Available models configuration - ALL THEBLOKE MODELS
+        # Expanded model configurations - ALL COMPATIBLE HUGGING FACE MODELS
         self.model_configs = {
-            # TheBloke uncensored models
+            # === LLAMA FAMILY ===
+            "Llama-3.2-3B-Instruct": {
+                "repo_id": "meta-llama/Llama-3.2-3B-Instruct",
+                "filename": "*.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "description": "Fast 3B Llama model, good for quick responses"
+            },
+            "Llama-3.1-8B-Instruct": {
+                "repo_id": "meta-llama/Llama-3.1-8B-Instruct",
+                "filename": "*.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "description": "Balanced 8B Llama model, excellent quality and speed"
+            },
+            "Llama-3.1-70B-Instruct": {
+                "repo_id": "meta-llama/Llama-3.1-70B-Instruct",
+                "filename": "*.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "description": "Premium 70B Llama model, exceptional quality (requires powerful hardware)"
+            },
+            "CodeLlama-34B-Instruct": {
+                "repo_id": "codellama/CodeLlama-34b-Instruct-hf",
+                "filename": "*.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "description": "Code-specialized Llama model, great for technical content"
+            },
+            
+            # === QWEN FAMILY ===
+            "Qwen2.5-7B-Instruct": {
+                "repo_id": "Qwen/Qwen2.5-7B-Instruct",
+                "filename": "*.gguf",
+                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "description": "High-quality 7B Qwen model, excellent for detailed content"
+            },
+            "Qwen2.5-14B-Instruct": {
+                "repo_id": "Qwen/Qwen2.5-14B-Instruct",
+                "filename": "*.gguf",
+                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "description": "Premium 14B Qwen model, exceptional reasoning capabilities"
+            },
+            "Qwen2.5-32B-Instruct": {
+                "repo_id": "Qwen/Qwen2.5-32B-Instruct",
+                "filename": "*.gguf",
+                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "description": "High-end 32B Qwen model, superior quality (requires powerful hardware)"
+            },
+            "Qwen2.5-Coder-7B-Instruct": {
+                "repo_id": "Qwen/Qwen2.5-Coder-7B-Instruct",
+                "filename": "*.gguf",
+                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "description": "Code-specialized Qwen model, excellent for technical tasks"
+            },
+            
+            # === MISTRAL FAMILY ===
+            "Mistral-7B-Instruct-v0.3": {
+                "repo_id": "mistralai/Mistral-7B-Instruct-v0.3",
+                "filename": "*.gguf",
+                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "description": "Efficient 7B Mistral model, balanced performance"
+            },
+            "Mixtral-8x7B-Instruct-v0.1": {
+                "repo_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+                "filename": "*.gguf",
+                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "description": "Mixture of experts model, excellent quality and efficiency"
+            },
+            "Mixtral-8x22B-Instruct-v0.1": {
+                "repo_id": "mistralai/Mixtral-8x22B-Instruct-v0.1",
+                "filename": "*.gguf",
+                "template": "<s>[INST] {system}\n\n{prompt} [/INST]",
+                "description": "High-end mixture of experts, premium quality (requires powerful hardware)"
+            },
+            
+            # === PHI FAMILY ===
+            "Phi-3-Mini-4K-Instruct": {
+                "repo_id": "microsoft/Phi-3-mini-4k-instruct",
+                "filename": "*.gguf",
+                "template": "<|user|>\n{system}\n\n{prompt}<|end|>\n<|assistant|>\n",
+                "description": "Compact 3.8B Phi model, efficient and capable"
+            },
+            "Phi-3-Medium-4K-Instruct": {
+                "repo_id": "microsoft/Phi-3-medium-4k-instruct",
+                "filename": "*.gguf",
+                "template": "<|user|>\n{system}\n\n{prompt}<|end|>\n<|assistant|>\n",
+                "description": "Balanced 14B Phi model, high quality responses"
+            },
+            
+            # === GEMMA FAMILY ===
+            "Gemma-2-9B-IT": {
+                "repo_id": "google/gemma-2-9b-it",
+                "filename": "*.gguf",
+                "template": "<start_of_turn>user\n{system}\n\n{prompt}<end_of_turn>\n<start_of_turn>model\n",
+                "description": "Google's 9B Gemma model, excellent reasoning"
+            },
+            "Gemma-2-27B-IT": {
+                "repo_id": "google/gemma-2-27b-it",
+                "filename": "*.gguf",
+                "template": "<start_of_turn>user\n{system}\n\n{prompt}<end_of_turn>\n<start_of_turn>model\n",
+                "description": "High-end 27B Gemma model, superior quality (requires powerful hardware)"
+            },
+            
+            # === DEEPSEEK FAMILY ===
+            "DeepSeek-V2.5": {
+                "repo_id": "deepseek-ai/DeepSeek-V2.5",
+                "filename": "*.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "description": "Advanced reasoning model, excellent for complex prompts"
+            },
+            "DeepSeek-Coder-V2-Lite-Instruct": {
+                "repo_id": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
+                "filename": "*.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "description": "Code-specialized DeepSeek model, excellent for technical content"
+            },
+            
+            # === UNCENSORED MODELS ===
             "Luna-AI-Llama2-Uncensored": {
                 "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                 "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                "template": "USER: {prompt}\\nASSISTANT:",
-                "description": "Efficient 7B uncensored model, good for most adult content tasks"
+                "template": "USER: {prompt}\nASSISTANT:",
+                "description": "Efficient 7B uncensored model, good for adult content tasks"
             },
             "WizardLM-13B-Uncensored": {
                 "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
                 "filename": "wizardlm-13b-uncensored.Q4_K_M.gguf",
-                "template": "You are a helpful AI assistant.\\n\\nUSER: {prompt}\\nASSISTANT:",
+                "template": "You are a helpful AI assistant.\n\nUSER: {prompt}\nASSISTANT:",
                 "description": "Balanced 13B uncensored model, high quality responses"
             },
             "Wizard-Vicuna-30B-Uncensored": {
@@ -65,51 +179,28 @@ class InfluencerChatbot:
             "Nous-Hermes-13B-Uncensored": {
                 "repo_id": "TheBloke/Nous-Hermes-13b-GGUF",
                 "filename": "nous-hermes-13b.Q4_K_M.gguf",
-                "template": "### Instruction:\\n{prompt}\\n\\n### Response:",
+                "template": "### Instruction:\n{prompt}\n\n### Response:",
                 "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
             },
-            # Modern TheBloke models
-            "Llama-3.2-3B-Instruct": {
-                "repo_id": "TheBloke/Llama-3.2-3B-Instruct-GGUF",
-                "filename": "llama-3.2-3b-instruct-q4_k_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
-                "description": "Fast 3B model, good for quick responses"
+            
+            # === SPECIALIZED MODELS ===
+            "Dolphin-2.9-Llama3-8B": {
+                "repo_id": "cognitivecomputations/dolphin-2.9-llama3-8b",
+                "filename": "*.gguf",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                "description": "Uncensored Dolphin model, excellent for creative tasks"
             },
-            "Llama-3.1-8B-Instruct": {
-                "repo_id": "TheBloke/Llama-3.1-8B-Instruct-GGUF",
-                "filename": "llama-3.1-8b-instruct-q4_k_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
-                "description": "Balanced 8B model, good quality and speed"
+            "OpenHermes-2.5-Mistral-7B": {
+                "repo_id": "teknium/OpenHermes-2.5-Mistral-7B",
+                "filename": "*.gguf",
+                "template": "<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "description": "High-quality instruction-tuned model, versatile and capable"
             },
-            "Qwen2.5-14B-Instruct": {
-                "repo_id": "TheBloke/Qwen2.5-14B-Instruct-GGUF",
-                "filename": "qwen2.5-14b-instruct-q4_k_m.gguf",
-                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
-                "description": "High-quality 14B model, excellent for detailed content"
-            },
-            "Llama-3.1-70B-Instruct": {
-                "repo_id": "TheBloke/Llama-3.1-70B-Instruct-GGUF",
-                "filename": "llama-3.1-70b-instruct-iq2_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
-                "description": "Premium 70B model, best quality (requires powerful hardware)"
-            },
-            "Goliath-120B": {
-                "repo_id": "TheBloke/goliath-120b-GGUF",
-                "filename": "goliath-120b-q2_k.gguf",
-                "template": "<|im_start|>system\\n{system}<|im_end|>\\n<|im_start|>user\\n{prompt}<|im_end|>\\n<|im_start|>assistant\\n",
-                "description": "Ultra-high-end 120B model, exceptional quality (requires very powerful hardware)"
-            },
-            "DeepSeek-V2.5": {
-                "repo_id": "TheBloke/DeepSeek-V2.5-GGUF",
-                "filename": "deepseek-v2.5-q4_k_m.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
-                "description": "Advanced reasoning model, great for complex prompts"
-            },
-            "Mixtral-8x22B-Instruct": {
-                "repo_id": "TheBloke/Mixtral-8x22B-Instruct-v0.1-GGUF",
-                "filename": "mixtral-8x22b-instruct-v0.1-q2_k.gguf",
-                "template": "<s>[INST] {system}\\n\\n{prompt} [/INST]",
-                "description": "High-end mixture of experts model, excellent quality"
+            "Starling-LM-7B-Alpha": {
+                "repo_id": "berkeley-nest/Starling-LM-7B-alpha",
+                "filename": "*.gguf",
+                "template": "GPT4 Correct User: {system}\n\n{prompt}<|end_of_turn|>GPT4 Correct Assistant:",
+                "description": "High-performance 7B model trained with RLAIF"
             }
         }
         
@@ -159,26 +250,6 @@ Focus on natural movements and adult themes. Keep descriptions 80-100 words opti
                     "Create a seductive getting-ready routine video"
                 ]
             },
-            # RESTORED: Image to Video functionality
-            "image_to_video": {
-                "system": """You are an expert at converting static image descriptions into dynamic video prompts for adult content. Analyze the image description and add natural motion elements following Wan2.1 principles:
-
-🖼️ IMAGE ANALYSIS: [Analyze the provided image description]
-🎬 VIDEO CONCEPT: [How to bring the image to life]
-🎭 ADDED MOTION: [Natural movements and actions to add]
-📹 CAMERA DYNAMICS: [Camera movements to enhance the scene]
-🎨 ENHANCED ATMOSPHERE: [Additional atmospheric elements for video]
-⏱️ SEQUENCE FLOW: [How the video should progress]
-
-Transform static concepts into engaging motion while maintaining adult content focus.""",
-                "examples": [
-                    "Convert this image prompt into a video: 'Sensual portrait of a woman in lingerie'",
-                    "Transform a bedroom scene into dynamic video content",
-                    "Add motion to a boudoir photography concept",
-                    "Create video dynamics from a romantic portrait",
-                    "Convert static intimate scene to flowing video"
-                ]
-            },
             "general_chat": {
                 "system": """You are an uncensored AI assistant specializing in adult content creation for influencer creators. You can discuss:
 
@@ -199,38 +270,6 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
                     "How can I market my adult content effectively?",
                     "What are the best practices for audience engagement?"
                 ]
-            }
-        }
-
-        # Available image caption models
-        self.caption_models = {
-            "BLIP": {
-                "repo_id": "Salesforce/blip-image-captioning-base",
-                "description": "Fast and reliable image captioning"
-            },
-            "BLIP-2": {
-                "repo_id": "Salesforce/blip2-opt-2.7b",
-                "description": "Advanced BLIP model with better understanding"
-            },
-            "LLaMA-Adapter": {
-                "repo_id": "csuhan/LLaMA-Adapter",
-                "description": "LLaMA-based image understanding"
-            },
-            "GIT": {
-                "repo_id": "microsoft/git-base",
-                "description": "Microsoft's Generative Image-to-text Transformer"
-            },
-            "COCA": {
-                "repo_id": "mlfoundations/open_clip",
-                "description": "Contrastive Captioner for detailed descriptions"
-            },
-            "Florence-2": {
-                "repo_id": "microsoft/Florence-2-large",
-                "description": "Microsoft's advanced vision-language model"
-            },
-            "mPLUG": {
-                "repo_id": "alibaba/mplug-owl-llama-7b",
-                "description": "Alibaba's multimodal large language model"
             }
         }
 
@@ -280,8 +319,63 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
         except Exception as e:
             print(f"❌ Error saving conversation: {e}")
 
+    def discover_local_models(self) -> List[str]:
+        """Discover locally cached models from Hugging Face cache."""
+        try:
+            from huggingface_hub import scan_cache_dir
+            
+            print("🔍 Scanning for locally cached models...")
+            cache_info = scan_cache_dir()
+            
+            discovered_models = []
+            for repo in cache_info.repos:
+                repo_id = repo.repo_id
+                # Check if it's a text generation model
+                if any(keyword in repo_id.lower() for keyword in ['llama', 'mistral', 'qwen', 'phi', 'gemma', 'deepseek', 'dolphin', 'hermes', 'wizard', 'vicuna']):
+                    discovered_models.append(repo_id)
+            
+            print(f"📦 Found {len(discovered_models)} cached models")
+            return discovered_models
+            
+        except Exception as e:
+            print(f"⚠️ Could not scan cache: {e}")
+            return []
+
+    def refresh_model_list(self) -> Tuple[List[str], str]:
+        """Refresh the model list by discovering new models."""
+        try:
+            print("🔄 Refreshing model list...")
+            
+            # Discover local models
+            local_models = self.discover_local_models()
+            
+            # Add discovered models to our config if not already present
+            new_models_added = 0
+            for model_id in local_models:
+                model_name = model_id.split('/')[-1]  # Use just the model name part
+                if model_name not in self.model_configs:
+                    # Add with generic configuration
+                    self.model_configs[model_name] = {
+                        "repo_id": model_id,
+                        "filename": "*.gguf",
+                        "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                        "description": f"Discovered model from {model_id}"
+                    }
+                    new_models_added += 1
+            
+            updated_choices = list(self.model_configs.keys())
+            status_msg = f"✅ Model list refreshed! Found {len(local_models)} cached models, added {new_models_added} new models."
+            
+            print(status_msg)
+            return updated_choices, status_msg
+            
+        except Exception as e:
+            error_msg = f"❌ Error refreshing model list: {str(e)}"
+            print(error_msg)
+            return list(self.model_configs.keys()), error_msg
+
     def load_model(self, model_name: str, gpu_layers: int = 35, progress=gr.Progress()) -> str:
-        """Load the specified model."""
+        """Load the specified model with enhanced compatibility."""
         try:
             print(f"🔄 Loading model: {model_name}")
             progress(0.1, f"Initializing {model_name}...")
@@ -302,14 +396,53 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             model_config = self.model_configs[model_name]
             progress(0.3, f"Loading {model_name} from {model_config['repo_id']}...")
             
-            # Load the model
-            self.llm = Llama.from_pretrained(
-                repo_id=model_config["repo_id"],
-                filename=model_config["filename"],
-                n_gpu_layers=gpu_layers,
-                n_ctx=4096,
-                verbose=False
-            )
+            # Enhanced model loading with better file detection
+            try:
+                # Try to load with specific filename first
+                if "*" not in model_config["filename"]:
+                    self.llm = Llama.from_pretrained(
+                        repo_id=model_config["repo_id"],
+                        filename=model_config["filename"],
+                        n_gpu_layers=gpu_layers,
+                        n_ctx=4096,
+                        verbose=False
+                    )
+                else:
+                    # For wildcard filenames, let llama-cpp-python auto-detect
+                    self.llm = Llama.from_pretrained(
+                        repo_id=model_config["repo_id"],
+                        n_gpu_layers=gpu_layers,
+                        n_ctx=4096,
+                        verbose=False
+                    )
+            except Exception as load_error:
+                # Fallback: try different common GGUF filenames
+                common_patterns = [
+                    "*Q4_K_M*.gguf",
+                    "*q4_k_m*.gguf", 
+                    "*Q4_0*.gguf",
+                    "*q4_0*.gguf",
+                    "*.gguf"
+                ]
+                
+                loaded = False
+                for pattern in common_patterns:
+                    try:
+                        print(f"🔄 Trying pattern: {pattern}")
+                        self.llm = Llama.from_pretrained(
+                            repo_id=model_config["repo_id"],
+                            filename=pattern,
+                            n_gpu_layers=gpu_layers,
+                            n_ctx=4096,
+                            verbose=False
+                        )
+                        loaded = True
+                        break
+                    except:
+                        continue
+                
+                if not loaded:
+                    raise load_error
             
             self.current_model = model_name
             progress(1.0, f"✅ {model_name} loaded successfully!")
@@ -325,7 +458,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             return f"❌ {error_msg}"
 
     def download_additional_model(self, repo_id: str, filename: str, progress=gr.Progress()) -> str:
-        """Download additional models from Hugging Face."""
+        """Download additional models from Hugging Face with enhanced support."""
         try:
             print(f"📥 Downloading model from {repo_id}")
             progress(0.1, f"Connecting to {repo_id}...")
@@ -334,13 +467,44 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             
             progress(0.3, "Downloading model files...")
             
-            # Download the model (this will cache it locally)
-            llm = Llama.from_pretrained(
-                repo_id=repo_id,
-                filename=filename,
-                n_gpu_layers=0,  # Don't load into GPU, just download
-                verbose=False
-            )
+            # Enhanced download with better filename handling
+            try:
+                if filename and filename.strip() and "*" not in filename:
+                    # Specific filename provided
+                    llm = Llama.from_pretrained(
+                        repo_id=repo_id,
+                        filename=filename,
+                        n_gpu_layers=0,  # Don't load into GPU, just download
+                        verbose=False
+                    )
+                else:
+                    # Auto-detect best file
+                    llm = Llama.from_pretrained(
+                        repo_id=repo_id,
+                        n_gpu_layers=0,  # Don't load into GPU, just download
+                        verbose=False
+                    )
+            except Exception as download_error:
+                # Try common GGUF patterns
+                common_patterns = ["*Q4_K_M*.gguf", "*q4_k_m*.gguf", "*.gguf"]
+                downloaded = False
+                
+                for pattern in common_patterns:
+                    try:
+                        print(f"🔄 Trying pattern: {pattern}")
+                        llm = Llama.from_pretrained(
+                            repo_id=repo_id,
+                            filename=pattern,
+                            n_gpu_layers=0,
+                            verbose=False
+                        )
+                        downloaded = True
+                        break
+                    except:
+                        continue
+                
+                if not downloaded:
+                    raise download_error
             
             progress(0.8, "Finalizing download...")
             
@@ -349,8 +513,8 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             if model_name not in self.model_configs:
                 self.model_configs[model_name] = {
                     "repo_id": repo_id,
-                    "filename": filename,
-                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                    "filename": filename if filename and "*" not in filename else "*.gguf",
+                    "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
                     "description": f"Custom model from {repo_id}"
                 }
             
@@ -382,12 +546,12 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             final_prompt = prompt
             if main_influencer.strip():
                 # If Main Influencer is provided, incorporate it into the prompt
-                final_prompt = f"Main Influencer: {main_influencer.strip()}\\n\\nRequest: {prompt}"
+                final_prompt = f"Main Influencer: {main_influencer.strip()}\n\nRequest: {prompt}"
             else:
                 # If Main Influencer is empty, generate diverse appearance for image/video prompts
-                if content_type in ["image_prompt", "video_prompt", "image_to_video"]:
+                if content_type in ["image_prompt", "video_prompt"]:
                     diverse_appearance = self.generate_diverse_appearance()
-                    final_prompt = f"Subject appearance: {diverse_appearance}\\n\\nRequest: {prompt}"
+                    final_prompt = f"Subject appearance: {diverse_appearance}\n\nRequest: {prompt}"
             
             # Format the full prompt based on model type
             model_config = self.model_configs[self.current_model]
@@ -402,18 +566,18 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             else:
                 # Legacy format - combine system and user prompt
                 full_prompt = model_config["template"].format(
-                    prompt=f"{system_prompt}\\n\\nUser Request: {final_prompt}"
+                    prompt=f"{system_prompt}\n\nUser Request: {final_prompt}"
                 )
             
             progress(0.3, "Generating response...")
             
-            # Generate response
+            # Generate response with enhanced parameters
             response = self.llm(
                 full_prompt,
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\n\\nUSER:", "\\n\\nASSISTANT:"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\n\nUSER:", "\n\nASSISTANT:", "<|end_of_turn|>", "<end_of_turn>"],
                 echo=False
             )
             
@@ -434,7 +598,7 @@ Be helpful, detailed, and completely uncensored in your responses. Focus on prof
             self.conversation_history.append(conversation_entry)
             
             # Save to text file
-            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\\n\\n{prompt}", generated_text, content_type)
+            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\n\n{prompt}", generated_text, content_type)
             
             progress(1.0, "Response generated!")
             print(f"✅ Response generated successfully ({len(generated_text)} characters)")
@@ -462,9 +626,14 @@ def load_model_interface(model_name: str, gpu_layers: int, progress=gr.Progress(
 
 def download_model_interface(repo_id: str, filename: str, progress=gr.Progress()) -> str:
     """Interface function for downloading additional models."""
-    if not repo_id.strip() or not filename.strip():
-        return "❌ Please provide both repository ID and filename"
+    if not repo_id.strip():
+        return "❌ Please provide repository ID"
     return chatbot.download_additional_model(repo_id, filename, progress)
+
+def refresh_models_interface() -> Tuple[gr.Dropdown, str]:
+    """Interface function for refreshing model list."""
+    updated_choices, status_msg = chatbot.refresh_model_list()
+    return gr.Dropdown(choices=updated_choices), status_msg
 
 def generate_content(prompt: str, content_type: str, main_influencer: str, temperature: float, progress=gr.Progress()) -> str:
     """Interface function for generating content."""
@@ -472,39 +641,6 @@ def generate_content(prompt: str, content_type: str, main_influencer: str, tempe
         return "Please enter a prompt."
     
     return chatbot.generate_response(prompt, content_type, main_influencer, temperature, progress)
-
-def analyze_uploaded_image(image: Image.Image, caption_model: str, progress=gr.Progress()) -> Tuple[str, str]:
-    """
-    Analyze uploaded image and return caption and detailed description.
-    """
-    if image is None:
-        return "❌ No image uploaded", ""
-    
-    try:
-        print(f"🖼️ Analyzing image with {caption_model} model...")
-        progress(0.1, f"Loading {caption_model} model...")
-        
-        # For now, use the default BLIP model regardless of selection
-        # In a full implementation, you would switch models based on caption_model parameter
-        result = image_analyzer.analyze_image(image)
-        
-        if result["success"]:
-            caption = result["caption"]
-            detailed_description = result["detailed_description"]
-            
-            progress(1.0, "Analysis complete!")
-            print(f"✅ Image analysis completed")
-            
-            return caption, detailed_description
-        else:
-            error_msg = f"❌ Image analysis failed: {result['error']}"
-            print(error_msg)
-            return error_msg, ""
-            
-    except Exception as e:
-        error_msg = f"❌ Error analyzing image: {str(e)}"
-        print(error_msg)
-        return error_msg, ""
 
 def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
     """Analyze prompt complexity and automatically suggest optimal SD Forge parameters."""
@@ -534,7 +670,7 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\\n"
+                analysis_text += f"- {category.title()}: {count} terms\n"
         
         # Format SD Forge parameters in Flux format with automatic selections
         params_text = f"""⚙️ **Automatically Recommended Stable Diffusion Forge Parameters (Flux Format)**
@@ -660,7 +796,7 @@ def create_interface():
         gr.HTML("""
         <div class="main-header">
             <h1>🔥 Influencer Chatbot - Advanced AI Assistant</h1>
-            <p>Professional AI assistant for adult content creation with multiple models, image analysis, and comprehensive content generation</p>
+            <p>Professional AI assistant for adult content creation with expanded model support and enhanced functionality</p>
         </div>
         """)
         
@@ -677,20 +813,19 @@ def create_interface():
             with gr.Tab("🤖 Model Management"):
                 gr.HTML("""
                 <div class="model-info">
-                    <h3>Available Models</h3>
-                    <p>Choose from a variety of uncensored and specialized models for different content types:</p>
+                    <h3>🚀 Expanded Model Support</h3>
+                    <p>Now supporting ALL compatible LLMs from Hugging Face, including:</p>
                     <ul>
-                        <li><strong>Luna-AI-Llama2-Uncensored (7B)</strong> - Fast, efficient for most tasks</li>
-                        <li><strong>WizardLM-13B-Uncensored (13B)</strong> - Balanced quality and speed</li>
-                        <li><strong>Wizard-Vicuna-30B-Uncensored (30B)</strong> - High quality, requires powerful hardware</li>
-                        <li><strong>Nous-Hermes-13B-Uncensored (13B)</strong> - Excellent for creative content</li>
-                        <li><strong>Llama-3.1-8B-Instruct (8B)</strong> - Modern, balanced model</li>
-                        <li><strong>Qwen2.5-14B-Instruct (14B)</strong> - High-quality detailed responses</li>
-                        <li><strong>Llama-3.1-70B-Instruct (70B)</strong> - Premium quality (requires very powerful hardware)</li>
-                        <li><strong>Goliath-120B (120B)</strong> - Ultra-high-end model (requires exceptional hardware)</li>
-                        <li><strong>DeepSeek-V2.5</strong> - Advanced reasoning capabilities</li>
-                        <li><strong>Mixtral-8x22B-Instruct</strong> - High-end mixture of experts model</li>
+                        <li><strong>Llama Family:</strong> 3.2-3B, 3.1-8B, 3.1-70B, CodeLlama-34B</li>
+                        <li><strong>Qwen Family:</strong> 2.5-7B, 2.5-14B, 2.5-32B, Coder-7B</li>
+                        <li><strong>Mistral Family:</strong> 7B-Instruct, Mixtral-8x7B, Mixtral-8x22B</li>
+                        <li><strong>Phi Family:</strong> 3-Mini-4K, 3-Medium-4K</li>
+                        <li><strong>Gemma Family:</strong> 2-9B-IT, 2-27B-IT</li>
+                        <li><strong>DeepSeek Family:</strong> V2.5, Coder-V2-Lite</li>
+                        <li><strong>Uncensored Models:</strong> Luna-AI, WizardLM, Wizard-Vicuna, Nous-Hermes</li>
+                        <li><strong>Specialized Models:</strong> Dolphin, OpenHermes, Starling-LM</li>
                     </ul>
+                    <p><strong>✨ New Features:</strong> Refresh button to discover newly downloaded models, enhanced compatibility with GGUF and safetensors formats, automatic model detection.</p>
                 </div>
                 """)
                 
@@ -699,9 +834,13 @@ def create_interface():
                         model_dropdown = gr.Dropdown(
                             choices=list(chatbot.model_configs.keys()),
                             label="Select Model",
-                            value="Luna-AI-Llama2-Uncensored",
+                            value="Llama-3.1-8B-Instruct",
                             info="Choose the AI model to load"
                         )
+                        
+                        with gr.Row():
+                            refresh_models_btn = gr.Button("🔄 Refresh Models", variant="secondary")
+                            load_model_btn = gr.Button("🚀 Load Model", variant="primary")
                         
                         gpu_layers_slider = gr.Slider(
                             minimum=0,
@@ -712,7 +851,6 @@ def create_interface():
                             info="Number of layers to offload to GPU (0 = CPU only, higher = more GPU usage)"
                         )
                         
-                        load_model_btn = gr.Button("🔄 Load Model", variant="primary")
                         model_status = gr.Textbox(label="Model Status", interactive=False)
                 
                 # Custom model download section
@@ -721,40 +859,23 @@ def create_interface():
                     with gr.Column():
                         custom_repo_id = gr.Textbox(
                             label="Repository ID",
-                            placeholder="e.g., TheBloke/Llama-2-7B-Chat-GGUF",
+                            placeholder="e.g., microsoft/Phi-3-mini-4k-instruct",
                             info="Hugging Face repository ID"
                         )
                         custom_filename = gr.Textbox(
-                            label="Model Filename",
-                            placeholder="e.g., llama-2-7b-chat.Q4_K_M.gguf",
-                            info="GGUF model filename"
+                            label="Model Filename (Optional)",
+                            placeholder="e.g., model.gguf (leave empty for auto-detection)",
+                            info="Specific GGUF filename or leave empty for auto-detection"
                         )
                         download_model_btn = gr.Button("📥 Download Model")
                         download_status = gr.Textbox(label="Download Status", interactive=False)
             
             # Content Generation Tab
             with gr.Tab("✨ Content Generation"):
-                # Add workflow instructions
-                gr.HTML("""
-                <div class="workflow-instructions">
-                    <h3>🎯 Optional Video Prompt Workflow Instructions</h3>
-                    <p><strong>For creating video content from image prompts, follow this step-by-step process:</strong></p>
-                    <ol>
-                        <li><strong>Step 1:</strong> Select "image_prompt" from the Content Type dropdown</li>
-                        <li><strong>Step 2:</strong> Generate your image prompt content using the AI</li>
-                        <li><strong>Step 3:</strong> Copy the generated image prompt from the output</li>
-                        <li><strong>Step 4:</strong> Paste it back into the "Your Request" box</li>
-                        <li><strong>Step 5:</strong> Change Content Type to "image_to_video"</li>
-                        <li><strong>Step 6:</strong> Generate again to transform your image prompt into a dynamic video prompt</li>
-                    </ol>
-                    <p><em>This workflow allows you to create comprehensive video prompts that build upon detailed image descriptions, ensuring consistency and quality in your content creation process.</em></p>
-                </div>
-                """)
-                
                 with gr.Row():
                     with gr.Column(scale=2):
                         content_type = gr.Dropdown(
-                            choices=["image_prompt", "video_prompt", "image_to_video", "general_chat"],
+                            choices=["image_prompt", "video_prompt", "general_chat"],
                             value="image_prompt",
                             label="Content Type",
                             info="Select the type of content to generate"
@@ -791,45 +912,6 @@ def create_interface():
                             label="Generated Content",
                             lines=20,
                             interactive=False
-                        )
-            
-            # Image Analysis Tab
-            with gr.Tab("🖼️ Image Analysis"):
-                gr.HTML("""
-                <div class="model-info">
-                    <h3>Enhanced Image Analysis</h3>
-                    <p>Upload an image to analyze it and generate detailed descriptions. The enhanced analysis provides comprehensive multi-pass descriptions covering subjects, settings, lighting, composition, and more.</p>
-                </div>
-                """)
-                
-                with gr.Row():
-                    with gr.Column():
-                        image_input = gr.Image(
-                            label="Upload Image",
-                            type="pil"
-                        )
-                        
-                        caption_model_dropdown = gr.Dropdown(
-                            choices=list(chatbot.caption_models.keys()),
-                            value="BLIP",
-                            label="Caption Model",
-                            info="Select image captioning model"
-                        )
-                        
-                        analyze_image_btn = gr.Button("🔍 Analyze Image", variant="primary")
-                    
-                    with gr.Column():
-                        image_caption = gr.Textbox(
-                            label="Image Caption",
-                            lines=3,
-                            interactive=False
-                        )
-                        
-                        image_description = gr.Textbox(
-                            label="Enhanced Detailed Description",
-                            lines=10,
-                            interactive=False,
-                            info="Comprehensive multi-pass analysis covering all aspects of the image"
                         )
             
             # Prompt Analysis Tab
@@ -885,6 +967,11 @@ def create_interface():
                         )
         
         # Event handlers
+        refresh_models_btn.click(
+            fn=refresh_models_interface,
+            outputs=[model_dropdown, model_status]
+        )
+        
         load_model_btn.click(
             fn=load_model_interface,
             inputs=[model_dropdown, gpu_layers_slider],
@@ -909,12 +996,6 @@ def create_interface():
             outputs=[prompt_input]
         )
         
-        analyze_image_btn.click(
-            fn=analyze_uploaded_image,
-            inputs=[image_input, caption_model_dropdown],
-            outputs=[image_caption, image_description]
-        )
-        
         analyze_prompt_btn.click(
             fn=analyze_prompt_complexity,
             inputs=[analysis_prompt_input],
@@ -934,7 +1015,7 @@ def create_interface():
     return interface
 
 if __name__ == "__main__":
-    print("🚀 Starting Influencer Chatbot...")
+    print("🚀 Starting Enhanced Influencer Chatbot...")
     
     # Create and launch the interface
     interface = create_interface()

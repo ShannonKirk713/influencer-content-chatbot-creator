@@ -1,24 +1,25 @@
-# Core dependencies from original fanvue-content-chatbot
+# Core dependencies for enhanced LLM chatbot
 gradio==5.32.0
 llama-cpp-python
-transformers>=4.40.0,<5.0.0
-torch>=2.1.0,<3.0.0
-torchvision>=0.16.0,<1.0.0
-Pillow>=10.0.1,<11.0.0
+huggingface-hub>=0.20.0,<1.0.0
+python-dotenv>=1.0.0,<2.0.0
 numpy>=1.24.3,<2.0.0
 requests>=2.31.0,<3.0.0
-python-dotenv>=1.0.0,<2.0.0
-
-# Enhanced vision analysis dependencies (OpenAI dependencies removed)
-flask>=2.3.3,<3.0.0
-# openai==1.3.0  # REMOVED - causing dependency conflicts
-ultralytics>=8.0.196,<9.0.0
-opencv-python>=4.8.1.78,<5.0.0
-segment-anything @ git+https://github.com/facebookresearch/segment-anything.git
-# clip-by-openai==1.0.1  # REMOVED - causing torch version conflicts
-matplotlib>=3.7.2,<4.0.0
-diffusers>=0.21.4,<1.0.0
-accelerate>=0.24.1,<1.0.0
 
 # Additional dependencies for enhanced functionality
 # webbrowser, threading, datetime, typing, json, os, logging, random are built-in modules
+
+# Note: Removed all image analysis dependencies:
+# - PIL/Pillow (image processing)
+# - transformers vision components
+# - torch/torchvision (deep learning)
+# - opencv-python (computer vision)
+# - ultralytics (YOLO)
+# - segment-anything (image segmentation)
+# - matplotlib (plotting)
+# - diffusers (image generation)
+# - accelerate (model acceleration)
+# - flask (web framework)
+# 
+# This streamlined version focuses purely on text-based LLM functionality
+# with expanded model compatibility and enhanced user experience.
