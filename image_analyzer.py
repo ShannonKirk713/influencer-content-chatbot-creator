@@ -3,13 +3,13 @@
 Image Analysis Module for Fanvue Chatbot
 Uses BLIP model for image captioning and analysis
 Enhanced with better error handling, progress tracking, and detailed descriptions
-FIXED: Improved video prompt generation to actually analyze uploaded images
-FIXED: Improved temporary file handling to prevent path errors
+ENHANCED: Significantly improved detailed description generation with multi-pass analysis
+ENHANCED: Added comprehensive scene analysis with multiple specialized prompts
 """
 
 import logging
 from PIL import Image
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import torch
 from tqdm import tqdm
 import sys
@@ -19,7 +19,7 @@ import os
 logger = logging.getLogger(__name__)
 
 class ImageAnalyzer:
-    """Image analysis class using BLIP model for captioning."""
+    """Image analysis class using BLIP model for captioning with enhanced detailed descriptions."""
     
     def __init__(self):
         self.processor = None
@@ -107,9 +107,82 @@ class ImageAnalyzer:
             print(f"❌ {error_msg}")
             return False
     
+    def _generate_specialized_description(self, image: Image.Image, prompt: str, max_tokens: int = 100) -> str:
+        """Generate a specialized description using a specific prompt."""
+        try:
+            inputs = self.processor(image, text=prompt, return_tensors="pt")
+            if torch.cuda.is_available() and hasattr(self.model, 'cuda'):
+                inputs = {k: v.cuda() for k, v in inputs.items()}
+            
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs, 
+                    max_new_tokens=max_tokens, 
+                    num_beams=5,
+                    do_sample=True,
+                    temperature=0.8,
+                    repetition_penalty=1.2,
+                    length_penalty=1.1
+                )
+            
+            description = self.processor.decode(outputs[0], skip_special_tokens=True)
+            
+            # Clean up the description to remove the prompt
+            if prompt in description:
+                description = description.replace(prompt, "").strip()
+            
+            return description
+        except Exception as e:
+            logger.warning(f"Error generating specialized description with prompt '{prompt}': {e}")
+            return ""
+    
+    def _combine_descriptions(self, descriptions: List[str]) -> str:
+        """Combine multiple descriptions into a comprehensive detailed description."""
+        # Filter out empty descriptions and duplicates
+        valid_descriptions = [desc.strip() for desc in descriptions if desc.strip()]
+        unique_descriptions = []
+        
+        for desc in valid_descriptions:
+            # Avoid adding very similar descriptions
+            is_duplicate = False
+            for existing in unique_descriptions:
+                if len(desc) > 10 and desc.lower() in existing.lower():
+                    is_duplicate = True
+                    break
+                elif len(existing) > 10 and existing.lower() in desc.lower():
+                    # Replace with longer description
+                    unique_descriptions.remove(existing)
+                    break
+            
+            if not is_duplicate:
+                unique_descriptions.append(desc)
+        
+        if not unique_descriptions:
+            return "A detailed scene captured in the image."
+        
+        # Combine descriptions intelligently
+        if len(unique_descriptions) == 1:
+            return unique_descriptions[0]
+        
+        # Create a comprehensive description by combining the best elements
+        combined = unique_descriptions[0]  # Start with the first description
+        
+        for desc in unique_descriptions[1:]:
+            # Add additional details that aren't already covered
+            words = desc.split()
+            for i, word in enumerate(words):
+                if word.lower() not in combined.lower():
+                    # Add new information
+                    phrase = " ".join(words[max(0, i-2):i+3])
+                    if phrase.lower() not in combined.lower():
+                        combined += f", {phrase}"
+        
+        return combined
+    
     def analyze_image(self, image: Image.Image, prompt: Optional[str] = None) -> Dict[str, Any]:
         """
         Analyze an image and generate caption and detailed description.
+        ENHANCED: Multi-pass analysis for comprehensive detailed descriptions.
         
         Args:
             image: PIL Image object
@@ -118,7 +191,7 @@ class ImageAnalyzer:
         Returns:
             Dictionary containing analysis results
         """
-        print("🔍 Starting image analysis...")
+        print("🔍 Starting enhanced image analysis...")
         
         if not self.model_loaded:
             print("📥 Model not loaded, loading now...")
@@ -150,53 +223,64 @@ class ImageAnalyzer:
             caption = self.processor.decode(outputs[0], skip_special_tokens=True)
             print(f"✅ Basic caption: {caption}")
             
-            print("📝 Generating detailed description...")
+            print("📝 Generating comprehensive detailed description...")
             
-            # Generate detailed description with specific prompt for better scene analysis
-            detailed_prompt = "Describe this image in detail including: the setting, people or subjects, their clothing and appearance, poses and expressions, lighting and atmosphere, and any notable objects or elements in the scene"
-            detailed_inputs = self.processor(image, text=detailed_prompt, return_tensors="pt")
-            if torch.cuda.is_available() and hasattr(self.model, 'cuda'):
-                detailed_inputs = {k: v.cuda() for k, v in detailed_inputs.items()}
+            # ENHANCED: Multi-pass analysis with specialized prompts
+            specialized_prompts = [
+                "Describe the people in this image including their appearance, clothing, poses, and expressions",
+                "Describe the setting, location, and environment shown in this image",
+                "Describe the lighting, colors, mood, and atmosphere of this image",
+                "Describe any objects, furniture, or props visible in this image",
+                "Describe the composition, framing, and artistic style of this image",
+                "Provide a detailed description focusing on textures, materials, and visual details"
+            ]
             
-            with torch.no_grad():
-                detailed_outputs = self.model.generate(
-                    **detailed_inputs, 
-                    max_new_tokens=150, 
-                    num_beams=5,
-                    do_sample=True,
-                    temperature=0.8,
-                    repetition_penalty=1.2
-                )
+            descriptions = []
             
-            detailed_description = self.processor.decode(detailed_outputs[0], skip_special_tokens=True)
+            # Generate multiple specialized descriptions
+            for i, specialized_prompt in enumerate(specialized_prompts):
+                print(f"🔍 Analyzing aspect {i+1}/6: {specialized_prompt[:50]}...")
+                desc = self._generate_specialized_description(image, specialized_prompt, max_tokens=80)
+                if desc and len(desc) > 10:
+                    descriptions.append(desc)
             
-            # Clean up the detailed description to remove the prompt
-            if detailed_prompt in detailed_description:
-                detailed_description = detailed_description.replace(detailed_prompt, "").strip()
+            # Generate a comprehensive natural description
+            print("🔍 Generating comprehensive overview...")
+            comprehensive_prompt = "Provide a detailed, comprehensive description of everything visible in this image"
+            comprehensive_desc = self._generate_specialized_description(image, comprehensive_prompt, max_tokens=150)
+            if comprehensive_desc and len(comprehensive_desc) > 20:
+                descriptions.insert(0, comprehensive_desc)  # Add at the beginning
             
-            # If the description is too similar to the prompt, generate a more natural description
-            if len(detailed_description) < 20 or detailed_description.lower().startswith("describe"):
-                # Try a different approach for detailed description
-                natural_prompt = "a detailed description of"
-                natural_inputs = self.processor(image, text=natural_prompt, return_tensors="pt")
+            # Combine all descriptions into a detailed final description
+            detailed_description = self._combine_descriptions(descriptions)
+            
+            # If we still don't have a good description, try a fallback approach
+            if len(detailed_description) < 30:
+                print("🔄 Using fallback description method...")
+                fallback_prompt = "a detailed description of"
+                fallback_inputs = self.processor(image, text=fallback_prompt, return_tensors="pt")
                 if torch.cuda.is_available() and hasattr(self.model, 'cuda'):
-                    natural_inputs = {k: v.cuda() for k, v in natural_inputs.items()}
+                    fallback_inputs = {k: v.cuda() for k, v in fallback_inputs.items()}
                 
                 with torch.no_grad():
-                    natural_outputs = self.model.generate(
-                        **natural_inputs, 
-                        max_new_tokens=100, 
+                    fallback_outputs = self.model.generate(
+                        **fallback_inputs, 
+                        max_new_tokens=120, 
                         num_beams=3,
                         do_sample=True,
                         temperature=0.9
                     )
                 
-                detailed_description = self.processor.decode(natural_outputs[0], skip_special_tokens=True)
-                # Remove the prompt prefix if present
-                if natural_prompt in detailed_description:
-                    detailed_description = detailed_description.replace(natural_prompt, "").strip()
+                detailed_description = self.processor.decode(fallback_outputs[0], skip_special_tokens=True)
+                if fallback_prompt in detailed_description:
+                    detailed_description = detailed_description.replace(fallback_prompt, "").strip()
             
-            print(f"✅ Detailed description generated ({len(detailed_description)} characters)")
+            # Ensure the description is properly formatted
+            if detailed_description and not detailed_description.endswith('.'):
+                detailed_description += '.'
+            
+            print(f"✅ Enhanced detailed description generated ({len(detailed_description)} characters)")
+            print(f"📊 Description preview: {detailed_description[:100]}...")
             
             return {
                 "success": True,
@@ -218,7 +302,7 @@ class ImageAnalyzer:
     
     def generate_video_prompt_from_image(self, image_analysis: Dict[str, Any], user_request: str = "") -> str:
         """
-        FIXED: Generate a video prompt based on actual image analysis.
+        Generate a video prompt based on actual image analysis.
         
         Args:
             image_analysis: Results from analyze_image()
@@ -235,7 +319,7 @@ class ImageAnalyzer:
         caption = image_analysis["caption"]
         detailed_desc = image_analysis["detailed_description"]
         
-        # FIXED: Create a sophisticated video prompt that actually uses the image analysis
+        # Create a sophisticated video prompt that actually uses the image analysis
         # Extract key elements from the image analysis
         subjects = self._extract_subjects(caption, detailed_desc)
         setting = self._extract_setting(caption, detailed_desc)
