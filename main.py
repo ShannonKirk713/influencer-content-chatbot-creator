@@ -506,36 +506,6 @@ def analyze_uploaded_image(image: Image.Image, caption_model: str, progress=gr.P
         print(error_msg)
         return error_msg, ""
 
-def generate_video_prompt_from_image(image: Image.Image, user_request: str, progress=gr.Progress()) -> str:
-    """Generate video prompt from uploaded image."""
-    if image is None:
-        return "❌ No image uploaded"
-    
-    try:
-        print("🎬 Generating video prompt from image...")
-        progress(0.2, "Analyzing image...")
-        
-        # First analyze the image
-        analysis_result = image_analyzer.analyze_image(image)
-        
-        if not analysis_result["success"]:
-            return f"❌ Could not analyze image: {analysis_result['error']}"
-        
-        progress(0.6, "Creating video prompt...")
-        
-        # Generate video prompt based on analysis
-        video_prompt = image_analyzer.generate_video_prompt_from_image(analysis_result, user_request)
-        
-        progress(1.0, "Video prompt generated!")
-        print("✅ Video prompt generated successfully")
-        
-        return video_prompt
-        
-    except Exception as e:
-        error_msg = f"❌ Error generating video prompt: {str(e)}"
-        print(error_msg)
-        return error_msg
-
 def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
     """Analyze prompt complexity and automatically suggest optimal SD Forge parameters."""
     if not prompt.strip():
@@ -639,12 +609,26 @@ def create_interface():
             margin: 1rem 0; 
             color: #856404 !important;
         }
+        .workflow-instructions {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            color: #0d47a1 !important;
+        }
         
         /* Dark theme support */
         .dark .warning-box {
             background: #664d03 !important;
             border: 1px solid #b08900 !important;
             color: #fff3cd !important;
+        }
+        
+        .dark .workflow-instructions {
+            background: #1a237e !important;
+            border: 1px solid #3f51b5 !important;
+            color: #e3f2fd !important;
         }
         
         .dark .model-info {
@@ -750,6 +734,23 @@ def create_interface():
             
             # Content Generation Tab
             with gr.Tab("✨ Content Generation"):
+                # Add workflow instructions
+                gr.HTML("""
+                <div class="workflow-instructions">
+                    <h3>🎯 Optional Video Prompt Workflow Instructions</h3>
+                    <p><strong>For creating video content from image prompts, follow this step-by-step process:</strong></p>
+                    <ol>
+                        <li><strong>Step 1:</strong> Select "image_prompt" from the Content Type dropdown</li>
+                        <li><strong>Step 2:</strong> Generate your image prompt content using the AI</li>
+                        <li><strong>Step 3:</strong> Copy the generated image prompt from the output</li>
+                        <li><strong>Step 4:</strong> Paste it back into the "Your Request" box</li>
+                        <li><strong>Step 5:</strong> Change Content Type to "image_to_video"</li>
+                        <li><strong>Step 6:</strong> Generate again to transform your image prompt into a dynamic video prompt</li>
+                    </ol>
+                    <p><em>This workflow allows you to create comprehensive video prompts that build upon detailed image descriptions, ensuring consistency and quality in your content creation process.</em></p>
+                </div>
+                """)
+                
                 with gr.Row():
                     with gr.Column(scale=2):
                         content_type = gr.Dropdown(
@@ -796,8 +797,8 @@ def create_interface():
             with gr.Tab("🖼️ Image Analysis"):
                 gr.HTML("""
                 <div class="model-info">
-                    <h3>Image Analysis & Video Prompt Generation</h3>
-                    <p>Upload an image to analyze it and generate detailed descriptions or video prompts based on the content.</p>
+                    <h3>Enhanced Image Analysis</h3>
+                    <p>Upload an image to analyze it and generate detailed descriptions. The enhanced analysis provides comprehensive multi-pass descriptions covering subjects, settings, lighting, composition, and more.</p>
                 </div>
                 """)
                 
@@ -816,15 +817,6 @@ def create_interface():
                         )
                         
                         analyze_image_btn = gr.Button("🔍 Analyze Image", variant="primary")
-                        
-                        # Video prompt generation from image
-                        gr.HTML("<h4>🎬 Generate Video Prompt from Image</h4>")
-                        video_user_request = gr.Textbox(
-                            label="Additional Requirements (Optional)",
-                            placeholder="e.g., focus on facial expressions, add romantic lighting...",
-                            lines=2
-                        )
-                        generate_video_btn = gr.Button("🎬 Generate Video Prompt")
                     
                     with gr.Column():
                         image_caption = gr.Textbox(
@@ -834,15 +826,10 @@ def create_interface():
                         )
                         
                         image_description = gr.Textbox(
-                            label="Detailed Description",
-                            lines=5,
-                            interactive=False
-                        )
-                        
-                        video_prompt_output = gr.Textbox(
-                            label="Generated Video Prompt",
-                            lines=15,
-                            interactive=False
+                            label="Enhanced Detailed Description",
+                            lines=10,
+                            interactive=False,
+                            info="Comprehensive multi-pass analysis covering all aspects of the image"
                         )
             
             # Prompt Analysis Tab
@@ -926,12 +913,6 @@ def create_interface():
             fn=analyze_uploaded_image,
             inputs=[image_input, caption_model_dropdown],
             outputs=[image_caption, image_description]
-        )
-        
-        generate_video_btn.click(
-            fn=generate_video_prompt_from_image,
-            inputs=[image_input, video_user_request],
-            outputs=[video_prompt_output]
         )
         
         analyze_prompt_btn.click(
