@@ -958,7 +958,8 @@ if __name__ == "__main__":
     # Create and launch the interface
     interface = create_interface()
     
-    # Launch with specific settings
+    # Launch with specific settings and enable queueing for progress tracking
+    interface.queue()  # Enable queueing for progress tracking in Gradio 5.x
     interface.launch(
         server_name="0.0.0.0",
         server_port=7861,
