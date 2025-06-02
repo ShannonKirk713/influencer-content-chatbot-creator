@@ -1,5 +1,5 @@
 """
-Enhanced image analysis module using CLIP, YOLO, SAM, and GPT-4V.
+Enhanced image analysis module using YOLO and SAM (OpenAI dependencies removed).
 """
 
 import os
@@ -14,15 +14,14 @@ logger = logging.getLogger(__name__)
 class ImageAnalyzer:
     """
     Enhanced image analyzer using multiple AI models for comprehensive analysis.
+    OpenAI CLIP and GPT-4V dependencies removed for compatibility.
     """
     
     def __init__(self):
-        """Initialize the image analyzer with all models."""
+        """Initialize the image analyzer with available models."""
         self.models_loaded = False
-        self.clip_model = None
         self.yolo_model = None
         self.sam_model = None
-        self.gpt4v_client = None
         
         # Try to load models
         self._load_models()
@@ -30,16 +29,6 @@ class ImageAnalyzer:
     def _load_models(self):
         """Load all required models for analysis."""
         try:
-            # Load CLIP model
-            try:
-                import clip
-                import torch
-                device = "cuda" if torch.cuda.is_available() else "cpu"
-                self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=device)
-                logger.info("✅ CLIP model loaded successfully")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not load CLIP model: {e}")
-            
             # Load YOLO model
             try:
                 from ultralytics import YOLO
@@ -63,14 +52,6 @@ class ImageAnalyzer:
             except Exception as e:
                 logger.warning(f"⚠️ Could not load SAM model: {e}")
             
-            # Initialize GPT-4V client
-            try:
-                import openai
-                self.gpt4v_client = openai.OpenAI()
-                logger.info("✅ GPT-4V client initialized")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not initialize GPT-4V client: {e}")
-            
             self.models_loaded = True
             
         except Exception as e:
@@ -79,7 +60,7 @@ class ImageAnalyzer:
     
     def analyze_comprehensive(self, image_path: str) -> Dict[str, Any]:
         """
-        Perform comprehensive image analysis using all available models.
+        Perform comprehensive image analysis using available models.
         
         Args:
             image_path (str): Path to the image file
@@ -93,10 +74,8 @@ class ImageAnalyzer:
             "image_path": image_path,
             "caption": "",
             "detailed_description": "",
-            "clip_analysis": {},
             "yolo_detections": [],
             "sam_segments": [],
-            "gpt4v_analysis": "",
             "combined_analysis": ""
         }
         
@@ -104,22 +83,22 @@ class ImageAnalyzer:
             # Load image
             image = Image.open(image_path)
             
-            # CLIP Analysis
-            if self.clip_model is not None:
-                results["clip_analysis"] = self._analyze_with_clip(image)
-                results["caption"] = results["clip_analysis"].get("description", "")
-            
             # YOLO Object Detection
             if self.yolo_model is not None:
                 results["yolo_detections"] = self._analyze_with_yolo(image_path)
+                # Generate basic caption from YOLO detections
+                if results["yolo_detections"]:
+                    detected_objects = [det["class"] for det in results["yolo_detections"] if det["confidence"] > 0.5]
+                    if detected_objects:
+                        results["caption"] = f"Image containing: {', '.join(detected_objects[:3])}"
+                    else:
+                        results["caption"] = "Image with various objects detected"
+                else:
+                    results["caption"] = "Image analysis completed"
             
             # SAM Segmentation
-            if self.sam_predictor is not None:
+            if hasattr(self, 'sam_predictor') and self.sam_predictor is not None:
                 results["sam_segments"] = self._analyze_with_sam(image)
-            
-            # GPT-4V Analysis
-            if self.gpt4v_client is not None:
-                results["gpt4v_analysis"] = self._analyze_with_gpt4v(image_path)
             
             # Combine all analyses
             results["combined_analysis"] = self._combine_analyses(results)
@@ -131,55 +110,6 @@ class ImageAnalyzer:
             results["error"] = str(e)
         
         return results
-    
-    def _analyze_with_clip(self, image: Image.Image) -> Dict[str, Any]:
-        """Analyze image using CLIP model."""
-        try:
-            import torch
-            
-            # Preprocess image
-            image_input = self.clip_preprocess(image).unsqueeze(0)
-            
-            # Define text prompts for analysis
-            text_prompts = [
-                "a photo of a person",
-                "a portrait photo",
-                "a landscape photo",
-                "an artistic photo",
-                "a professional photo",
-                "indoor scene",
-                "outdoor scene",
-                "close-up shot",
-                "wide angle shot"
-            ]
-            
-            text_inputs = torch.cat([clip.tokenize(prompt) for prompt in text_prompts])
-            
-            # Calculate features
-            with torch.no_grad():
-                image_features = self.clip_model.encode_image(image_input)
-                text_features = self.clip_model.encode_text(text_inputs)
-                
-                # Calculate similarities
-                similarities = (100.0 * image_features @ text_features.T).softmax(dim=-1)
-                values, indices = similarities[0].topk(3)
-            
-            # Get top matches
-            top_matches = []
-            for i in range(3):
-                top_matches.append({
-                    "description": text_prompts[indices[i]],
-                    "confidence": float(values[i])
-                })
-            
-            return {
-                "top_matches": top_matches,
-                "description": top_matches[0]["description"] if top_matches else "unknown scene"
-            }
-            
-        except Exception as e:
-            logger.error(f"❌ CLIP analysis error: {e}")
-            return {"error": str(e)}
     
     def _analyze_with_yolo(self, image_path: str) -> List[Dict[str, Any]]:
         """Analyze image using YOLO object detection."""
@@ -231,54 +161,10 @@ class ImageAnalyzer:
             logger.error(f"❌ SAM analysis error: {e}")
             return []
     
-    def _analyze_with_gpt4v(self, image_path: str) -> str:
-        """Analyze image using GPT-4V."""
-        try:
-            import base64
-            
-            # Encode image to base64
-            with open(image_path, "rb") as image_file:
-                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-            
-            response = self.gpt4v_client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": "Analyze this image in detail. Describe the scene, objects, people, composition, lighting, mood, and any other relevant details for content creation purposes."
-                            },
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}"
-                                }
-                            }
-                        ]
-                    }
-                ],
-                max_tokens=500
-            )
-            
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            logger.error(f"❌ GPT-4V analysis error: {e}")
-            return f"GPT-4V analysis unavailable: {str(e)}"
-    
     def _combine_analyses(self, results: Dict[str, Any]) -> str:
         """Combine all analysis results into a comprehensive description."""
         
         combined = "🔍 **Comprehensive Image Analysis**\n\n"
-        
-        # CLIP Analysis
-        if results.get("clip_analysis") and "top_matches" in results["clip_analysis"]:
-            combined += "**CLIP Scene Understanding:**\n"
-            for match in results["clip_analysis"]["top_matches"]:
-                combined += f"- {match['description']} (confidence: {match['confidence']:.2f})\n"
-            combined += "\n"
         
         # YOLO Detections
         if results.get("yolo_detections"):
@@ -296,10 +182,12 @@ class ImageAnalyzer:
                 combined += f"- Average stability score: {avg_stability:.2f}\n"
             combined += "\n"
         
-        # GPT-4V Analysis
-        if results.get("gpt4v_analysis") and not results["gpt4v_analysis"].startswith("GPT-4V analysis unavailable"):
-            combined += "**Advanced Visual Analysis (GPT-4V):**\n"
-            combined += results["gpt4v_analysis"] + "\n\n"
+        # Add fallback description if no models available
+        if not results.get("yolo_detections") and not results.get("sam_segments"):
+            combined += "**Basic Analysis:**\n"
+            combined += "- Image loaded and processed successfully\n"
+            combined += "- Advanced analysis models not available\n"
+            combined += "- Consider using alternative image analysis tools\n\n"
         
         return combined
     
@@ -316,17 +204,10 @@ class ImageAnalyzer:
         
         try:
             # Extract key information from analysis
-            clip_info = analysis_result.get("clip_analysis", {})
             yolo_detections = analysis_result.get("yolo_detections", [])
-            gpt4v_analysis = analysis_result.get("gpt4v_analysis", "")
             
             # Build video prompt
             video_prompt = "🎬 **Enhanced Video Prompt (CFG=1.0)**\n\n"
-            
-            # Scene type from CLIP
-            if clip_info and "top_matches" in clip_info:
-                scene_type = clip_info["top_matches"][0]["description"]
-                video_prompt += f"**Scene Type:** {scene_type}\n\n"
             
             # Objects and subjects from YOLO
             if yolo_detections:
@@ -357,14 +238,9 @@ class ImageAnalyzer:
             video_prompt += "- Frame Count: 16\n"
             video_prompt += "- FPS: 8\n\n"
             
-            # Enhanced description from GPT-4V
-            if gpt4v_analysis and not gpt4v_analysis.startswith("GPT-4V analysis unavailable"):
-                video_prompt += "**Enhanced Scene Description:**\n"
-                video_prompt += gpt4v_analysis[:200] + "...\n\n"
-            
             video_prompt += "**Optimization Notes:**\n"
-            video_prompt += "- Two-stage analysis completed\n"
-            video_prompt += "- Multi-model ensemble used (CLIP + YOLO + SAM + GPT-4V)\n"
+            video_prompt += "- Analysis completed with available models\n"
+            video_prompt += "- YOLO object detection used for scene understanding\n"
             video_prompt += "- Automatic prompt enhancement applied\n"
             video_prompt += "- CFG scale optimized for creative freedom\n"
             
