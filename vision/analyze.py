@@ -193,56 +193,66 @@ class ImageAnalyzer:
     
     def generate_video_prompt(self, analysis_result: Dict[str, Any]) -> str:
         """
-        Generate a dynamic video prompt based on comprehensive image analysis.
+        Generate a dynamic video prompt using WAN 2.1 format (Subject + Scene + Motion).
         
         Args:
             analysis_result (Dict[str, Any]): Results from analyze_comprehensive
             
         Returns:
-            str: Generated video prompt optimized for video generation
+            str: Generated video prompt in WAN 2.1 format
         """
         
         try:
             # Extract key information from analysis
             yolo_detections = analysis_result.get("yolo_detections", [])
             
-            # Build video prompt
-            video_prompt = "🎬 **Enhanced Video Prompt (CFG=1.0)**\n\n"
+            # Build WAN 2.1 format video prompt
+            video_prompt = "🎬 **WAN 2.1 Video Prompt**\n\n"
             
-            # Objects and subjects from YOLO
+            # SUBJECT section
+            video_prompt += "**SUBJECT**: "
             if yolo_detections:
                 subjects = [det["class"] for det in yolo_detections if det["confidence"] > 0.5]
-                if subjects:
-                    video_prompt += f"**Key Elements:** {', '.join(subjects[:3])}\n\n"
+                if any("person" in str(subjects).lower()):
+                    video_prompt += "Attractive person with natural pose and expression, detailed features"
+                else:
+                    video_prompt += f"Main elements: {', '.join(subjects[:2]) if subjects else 'central subject'}"
+            else:
+                video_prompt += "Central subject with detailed appearance and positioning"
+            video_prompt += "\n\n"
             
-            # Motion suggestions based on detected elements
-            video_prompt += "**Suggested Motion:**\n"
+            # SCENE section
+            video_prompt += "**SCENE**: "
+            video_prompt += "Well-lit environment with atmospheric lighting, detailed background, professional setting"
+            video_prompt += "\n\n"
+            
+            # MOTION section
+            video_prompt += "**MOTION**: "
+            motion_elements = []
             
             # Determine motion based on detected objects
             if any("person" in det["class"] for det in yolo_detections):
-                video_prompt += "- Gentle movement and natural gestures\n"
-                video_prompt += "- Subtle facial expressions and eye contact\n"
-                video_prompt += "- Graceful pose transitions\n"
+                motion_elements.extend(["gentle movement", "natural gestures", "subtle expressions"])
             
             if any(obj in str(yolo_detections).lower() for obj in ["hair", "clothing", "fabric"]):
-                video_prompt += "- Soft fabric movement and hair flow\n"
-                video_prompt += "- Natural wind or air circulation effects\n"
+                motion_elements.extend(["fabric flow", "hair movement"])
             
-            video_prompt += "- Smooth camera movements (slow zoom or pan)\n"
-            video_prompt += "- Dynamic lighting changes\n\n"
+            motion_elements.extend(["smooth camera pan", "gradual zoom"])
             
-            # Technical parameters
-            video_prompt += "**Technical Settings:**\n"
-            video_prompt += "- CFG Scale: 1.0 (fixed for maximum creative freedom)\n"
-            video_prompt += "- Motion Strength: 0.8\n"
-            video_prompt += "- Frame Count: 16\n"
-            video_prompt += "- FPS: 8\n\n"
+            video_prompt += ", ".join(motion_elements[:4])
+            video_prompt += "\n\n"
             
-            video_prompt += "**Optimization Notes:**\n"
-            video_prompt += "- Analysis completed with available models\n"
-            video_prompt += "- YOLO object detection used for scene understanding\n"
-            video_prompt += "- Automatic prompt enhancement applied\n"
-            video_prompt += "- CFG scale optimized for creative freedom\n"
+            # Technical recommendations
+            video_prompt += "**Technical Recommendations:**\n"
+            video_prompt += "📹 **Recommended FPS**: 24-30 fps for smooth motion\n"
+            video_prompt += "⏱️ **Optimal Duration**: 3-5 seconds for best quality\n"
+            video_prompt += "🎞️ **Frame Count**: 72-150 frames (24fps × 3-5 seconds)\n"
+            video_prompt += "🎛️ **Motion Strength**: 0.8 for natural movement\n\n"
+            
+            video_prompt += "**Analysis Notes:**\n"
+            video_prompt += "- WAN 2.1 format optimized for video generation\n"
+            video_prompt += "- Subject + Scene + Motion structure applied\n"
+            video_prompt += "- Technical parameters optimized for quality\n"
             
             return video_prompt
             
