@@ -47,32 +47,32 @@ class InfluencerChatbot:
             "Orenguteng/Llama-3-8B-Lexi-Uncensored": {
                 "repo_id": "Orenguteng/Llama-3-8B-Lexi-Uncensored-GGUF",
                 "filename": "Llama-3-8B-Lexi-Uncensored.Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\\\n\\\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\\\n\\\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\\\n\\\\n",
                 "description": "Lexi uncensored 8B model, specialized for adult content"
             },
             "aifeifei798/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored": {
                 "repo_id": "aifeifei798/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored-GGUF",
                 "filename": "DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\\\n\\\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\\\n\\\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\\\n\\\\n",
                 "description": "DarkIdol uncensored 8B model, enhanced for creative content"
             },
             "DevsDoCode/LLama-3-8b-Uncensored": {
                 "repo_id": "DevsDoCode/LLama-3-8b-Uncensored-GGUF",
                 "filename": "LLama-3-8b-Uncensored.Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\\\n\\\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\\\n\\\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\\\n\\\\n",
                 "description": "DevsDoCode uncensored 8B model, optimized for unrestricted content"
             },
             # Keep these specific models as requested
             "Luna-AI-Llama2-Uncensored": {
                 "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                 "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                "template": "USER: {prompt}\\nASSISTANT:",
+                "template": "USER: {prompt}\\\\nASSISTANT:",
                 "description": "Efficient 7B uncensored model, good for most adult content tasks"
             },
             "WizardLM-13B-Uncensored": {
                 "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
                 "filename": "wizardlm-13b-uncensored.Q4_K_M.gguf",
-                "template": "You are a helpful AI assistant.\\n\\nUSER: {prompt}\\nASSISTANT:",
+                "template": "You are a helpful AI assistant.\\\\n\\\\nUSER: {prompt}\\\\nASSISTANT:",
                 "description": "Balanced 13B uncensored model, high quality responses"
             },
             "Wizard-Vicuna-30B-Uncensored": {
@@ -84,7 +84,7 @@ class InfluencerChatbot:
             "Nous-Hermes-13B-Uncensored": {
                 "repo_id": "TheBloke/Nous-Hermes-13b-GGUF",
                 "filename": "nous-hermes-13b.Q4_K_M.gguf",
-                "template": "### Instruction:\\n{prompt}\\n\\n### Response:",
+                "template": "### Instruction:\\\\n{prompt}\\\\n\\\\n### Response:",
                 "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
             }
         }
@@ -228,13 +228,13 @@ Transform static concepts into engaging motion while maintaining focus.""",
             filename = f"{self.history_folder}/conversation_{date_str}.txt"
             
             with open(filename, "a", encoding="utf-8") as f:
-                f.write(f"\n{'='*80}\n")
-                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Content Type: {content_type}\n")
-                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\n")
-                f.write(f"{'='*80}\n")
-                f.write(f"USER PROMPT:\n{prompt}\n")
-                f.write(f"\nAI RESPONSE:\n{response}\n")
+                f.write(f"\\n{'='*80}\\n")
+                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\\n")
+                f.write(f"Content Type: {content_type}\\n")
+                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\\n")
+                f.write(f"{'='*80}\\n")
+                f.write(f"USER PROMPT:\\n{prompt}\\n")
+                f.write(f"\\nAI RESPONSE:\\n{response}\\n")
                 
             print(f"💾 Conversation saved to {filename}")
             
@@ -304,12 +304,12 @@ Transform static concepts into engaging motion while maintaining focus.""",
             final_prompt = prompt
             if main_influencer.strip():
                 # If Main Influencer is provided, incorporate it into the prompt
-                final_prompt = f"Main Influencer: {main_influencer.strip()}\\n\\nRequest: {prompt}"
+                final_prompt = f"Main Influencer: {main_influencer.strip()}\\\\n\\\\nRequest: {prompt}"
             else:
                 # If Main Influencer is empty, generate diverse appearance for image/video prompts
                 if content_type in ["image_prompt", "video_prompt", "image_to_video"]:
                     diverse_appearance = self.generate_diverse_appearance()
-                    final_prompt = f"Subject appearance: {diverse_appearance}\\n\\nRequest: {prompt}"
+                    final_prompt = f"Subject appearance: {diverse_appearance}\\\\n\\\\nRequest: {prompt}"
             
             # Format the full prompt based on model type
             model_config = self.model_configs[self.current_model]
@@ -324,7 +324,7 @@ Transform static concepts into engaging motion while maintaining focus.""",
             else:
                 # Legacy format - combine system and user prompt
                 full_prompt = model_config["template"].format(
-                    prompt=f"{system_prompt}\\n\\nUser Request: {final_prompt}"
+                    prompt=f"{system_prompt}\\\\n\\\\nUser Request: {final_prompt}"
                 )
             
             progress(0.3, "Generating response...")
@@ -335,7 +335,7 @@ Transform static concepts into engaging motion while maintaining focus.""",
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\n\\nUSER:", "\\n\\nASSISTANT:"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\\\n\\\\nUSER:", "\\\\n\\\\nASSISTANT:"],
                 echo=False
             )
             
@@ -356,7 +356,7 @@ Transform static concepts into engaging motion while maintaining focus.""",
             self.conversation_history.append(conversation_entry)
             
             # Save to text file
-            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\\n\\n{prompt}", generated_text, content_type)
+            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\\\\n\\\\n{prompt}", generated_text, content_type)
             
             progress(1.0, "Response generated!")
             print(f"✅ Response generated successfully ({len(generated_text)} characters)")
@@ -481,7 +481,7 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\\n"
+                analysis_text += f"- {category.title()}: {count} terms\\\\n"
         
         # Format SD Forge parameters in Flux format with automatic selections
         params_text = f"""⚙️ **Automatically Recommended Stable Diffusion Forge Parameters (Flux Format)**
@@ -855,7 +855,7 @@ if __name__ == "__main__":
     interface = create_interface()
     interface.launch(
         server_name="0.0.0.0",
-        server_port=7860,
+        server_port=7861,
         share=False,
         show_error=True,
         debug=False
