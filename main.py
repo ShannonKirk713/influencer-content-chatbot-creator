@@ -662,140 +662,160 @@ def create_interface():
                         main_influencer = gr.Textbox(
                             label="Main Influencer Description (Optional)",
                             placeholder="e.g., 25-year-old blonde woman with blue eyes, athletic build...",
-                            info="Describe the main subject. Leave empty for diverse random generation.",
-                            lines=2
+                            info="Describe the main subject. Leave empty for diverse random appearance generation."
                         )
                         
-                        prompt_input = gr.Textbox(
-                            label="Your Request",
+                        user_prompt = gr.Textbox(
+                            label="Your Prompt",
                             placeholder="Describe what you want to create...",
-                            lines=4
-                        )
-                        
-                        temperature_slider = gr.Slider(
-                            minimum=0.1,
-                            maximum=2.0,
-                            value=0.7,
-                            step=0.1,
-                            label="Creativity (Temperature)",
-                            info="Lower = more focused, Higher = more creative"
+                            lines=4,
+                            info="Enter your creative request here"
                         )
                         
                         with gr.Row():
-                            generate_btn = gr.Button("🚀 Generate Content", variant="primary")
-                            example_btn = gr.Button("💡 Get Example")
+                            temperature_slider = gr.Slider(
+                                minimum=0.1,
+                                maximum=1.5,
+                                value=0.7,
+                                step=0.1,
+                                label="Creativity (Temperature)",
+                                info="Higher values = more creative, lower = more focused"
+                            )
+                        
+                        with gr.Row():
+                            generate_btn = gr.Button("✨ Generate Content", variant="primary", size="lg")
+                            example_btn = gr.Button("🎲 Get Example", variant="secondary")
                     
-                    with gr.Column(scale=3):
-                        output_text = gr.Textbox(
-                            label="Generated Content",
-                            lines=20,
-                            interactive=False
-                        )
+                    with gr.Column(scale=1):
+                        gr.HTML("""
+                        <div class="model-info">
+                            <h3>💡 Content Types</h3>
+                            <ul>
+                                <li><strong>Image Prompt:</strong> Detailed prompts for image generation</li>
+                                <li><strong>Video Prompt:</strong> WAN 2.1 format prompts for video creation (24-30 fps, 3-5 seconds)</li>
+                                <li><strong>Image to Video:</strong> Convert image descriptions to video prompts</li>
+                            </ul>
+                        </div>
+                        """)
+                
+                generated_content = gr.Textbox(
+                    label="Generated Content",
+                    lines=15,
+                    interactive=False,
+                    info="Your generated content will appear here"
+                )
             
             # Image Analysis Tab
             with gr.Tab("🖼️ Image Analysis"):
-                gr.HTML("""
-                <div class="model-info">
-                    <h3>Image Analysis & Video Prompt Generation</h3>
-                    <p>Upload an image to analyze it and generate detailed descriptions or video prompts based on the content.</p>
-                </div>
-                """)
-                
                 with gr.Row():
                     with gr.Column():
-                        image_input = gr.Image(
-                            label="Upload Image",
-                            type="pil"
+                        uploaded_image = gr.Image(
+                            label="Upload Image for Analysis",
+                            type="pil",
+                            info="Upload an image to analyze and generate descriptions"
                         )
                         
                         caption_model_dropdown = gr.Dropdown(
                             choices=list(chatbot.caption_models.keys()),
                             value="BLIP",
                             label="Caption Model",
-                            info="Select image captioning model"
+                            info="Select the model for image captioning"
                         )
                         
                         analyze_image_btn = gr.Button("🔍 Analyze Image", variant="primary")
                         
-                        # Video prompt generation from image
-                        gr.HTML("<h4>🎬 Generate Video Prompt from Image</h4>")
-                        video_user_request = gr.Textbox(
-                            label="Additional Requirements (Optional)",
-                            placeholder="e.g., focus on facial expressions, add romantic lighting...",
-                            lines=2
-                        )
-                        generate_video_btn = gr.Button("🎬 Generate Video Prompt")
-                    
                     with gr.Column():
                         image_caption = gr.Textbox(
                             label="Image Caption",
                             lines=3,
-                            interactive=False
+                            interactive=False,
+                            info="Basic caption of the image"
                         )
                         
                         image_description = gr.Textbox(
                             label="Detailed Description",
-                            lines=5,
-                            interactive=False
+                            lines=8,
+                            interactive=False,
+                            info="Detailed analysis of the image"
+                        )
+                
+                # Image to Video Section
+                gr.HTML("<hr><h3>🎬 Image to Video Conversion</h3>")
+                
+                with gr.Row():
+                    with gr.Column():
+                        video_request = gr.Textbox(
+                            label="Video Request",
+                            placeholder="Describe how you want to animate this image...",
+                            lines=3,
+                            info="Describe the motion and dynamics you want to add"
                         )
                         
+                        generate_video_prompt_btn = gr.Button("🎬 Generate Video Prompt", variant="primary")
+                    
+                    with gr.Column():
                         video_prompt_output = gr.Textbox(
                             label="Generated Video Prompt",
-                            lines=15,
-                            interactive=False
+                            lines=10,
+                            interactive=False,
+                            info="WAN 2.1 format video prompt with 24-30 fps recommendations"
                         )
             
             # Prompt Analysis Tab
             with gr.Tab("🔍 Prompt Analysis"):
                 gr.HTML("""
                 <div class="model-info">
-                    <h3>Intelligent Prompt Analysis & SD Forge Parameter Optimization</h3>
-                    <p>Analyze your prompts for complexity and get automatically optimized Stable Diffusion Forge parameters for Flux models.</p>
+                    <h3>🎯 Automatic SD Forge Parameter Optimization</h3>
+                    <p>Analyze your prompts and get automatically optimized Stable Diffusion Forge parameters for Flux models. The system intelligently selects the best sampler, scheduler, and settings based on your prompt's complexity and content.</p>
                 </div>
                 """)
                 
                 with gr.Row():
                     with gr.Column():
-                        analysis_prompt_input = gr.Textbox(
+                        analysis_prompt = gr.Textbox(
                             label="Prompt to Analyze",
                             placeholder="Enter your image generation prompt here...",
-                            lines=5
+                            lines=5,
+                            info="Enter any image generation prompt for automatic analysis and parameter optimization"
                         )
                         
-                        analyze_prompt_btn = gr.Button("🔍 Analyze Prompt & Get Parameters", variant="primary")
-                    
+                        analyze_prompt_btn = gr.Button("🔍 Analyze & Optimize", variant="primary", size="lg")
+                
+                with gr.Row():
                     with gr.Column():
                         complexity_analysis = gr.Textbox(
                             label="Complexity Analysis",
                             lines=12,
-                            interactive=False
+                            interactive=False,
+                            info="Detailed analysis of prompt complexity and technical elements"
                         )
-                        
-                        sd_parameters = gr.Textbox(
-                            label="Recommended SD Forge Parameters",
-                            lines=12,
-                            interactive=False
-                        )
-            
-            # Conversation Management Tab
-            with gr.Tab("💾 Conversation Management"):
-                gr.HTML("""
-                <div class="model-info">
-                    <h3>Conversation History Management</h3>
-                    <p>Manage your conversation history, export data, and clear sessions.</p>
-                </div>
-                """)
-                
-                with gr.Row():
-                    with gr.Column():
-                        clear_btn = gr.Button("🗑️ Clear History", variant="secondary")
-                        export_btn = gr.Button("📤 Export Conversation", variant="primary")
                     
                     with gr.Column():
-                        management_status = gr.Textbox(
-                            label="Status",
-                            interactive=False
+                        sd_parameters = gr.Textbox(
+                            label="Automatically Optimized SD Forge Parameters",
+                            lines=12,
+                            interactive=False,
+                            info="Ready-to-use parameters automatically optimized for your prompt"
                         )
+            
+            # Conversation History Tab
+            with gr.Tab("📚 History"):
+                with gr.Row():
+                    clear_history_btn = gr.Button("🗑️ Clear History", variant="secondary")
+                    export_history_btn = gr.Button("💾 Export History", variant="primary")
+                
+                history_status = gr.Textbox(
+                    label="History Status",
+                    interactive=False,
+                    info="Status of history operations"
+                )
+                
+                gr.HTML("""
+                <div class="model-info">
+                    <h3>📁 Conversation Logs</h3>
+                    <p>All conversations are automatically saved to timestamped text files in the 'conversation_logs' folder. You can also export your conversation history as JSON for backup or analysis.</p>
+                </div>
+                """)
         
         # Event handlers
         load_model_btn.click(
@@ -804,63 +824,58 @@ def create_interface():
             outputs=[model_status]
         )
         
-
-        
         generate_btn.click(
             fn=generate_content,
-            inputs=[prompt_input, content_type, main_influencer, temperature_slider],
-            outputs=[output_text]
+            inputs=[user_prompt, content_type, main_influencer, temperature_slider],
+            outputs=[generated_content]
         )
         
         example_btn.click(
             fn=get_example,
             inputs=[content_type],
-            outputs=[prompt_input]
+            outputs=[user_prompt]
         )
         
         analyze_image_btn.click(
             fn=analyze_uploaded_image,
-            inputs=[image_input, caption_model_dropdown],
+            inputs=[uploaded_image, caption_model_dropdown],
             outputs=[image_caption, image_description]
         )
         
-        generate_video_btn.click(
+        generate_video_prompt_btn.click(
             fn=generate_video_prompt_from_image,
-            inputs=[image_input, video_user_request],
+            inputs=[uploaded_image, video_request],
             outputs=[video_prompt_output]
         )
         
         analyze_prompt_btn.click(
             fn=analyze_prompt_complexity,
-            inputs=[analysis_prompt_input],
+            inputs=[analysis_prompt],
             outputs=[complexity_analysis, sd_parameters]
         )
         
-        clear_btn.click(
+        clear_history_btn.click(
             fn=clear_conversation,
-            outputs=[management_status]
+            outputs=[history_status]
         )
         
-        export_btn.click(
+        export_history_btn.click(
             fn=export_conversation,
-            outputs=[management_status]
+            outputs=[history_status]
         )
     
     return interface
 
 if __name__ == "__main__":
     print("🚀 Starting Influencer Chatbot...")
+    print("📋 Available models:", list(chatbot.model_configs.keys()))
     
-    # Create and launch the interface
+    # Create and launch interface
     interface = create_interface()
-    
-    # Launch with specific settings and enable queueing for progress tracking
-    interface.queue()  # Enable queueing for progress tracking in Gradio 5.x
     interface.launch(
         server_name="0.0.0.0",
-        server_port=7861,
+        server_port=7860,
         share=False,
-        debug=False,
         show_error=True,
-        quiet=False
+        debug=False
     )
