@@ -47,32 +47,32 @@ class InfluencerChatbot:
             "Orenguteng/Llama-3-8B-Lexi-Uncensored": {
                 "repo_id": "Orenguteng/Llama-3-8B-Lexi-Uncensored-GGUF",
                 "filename": "Llama-3-8B-Lexi-Uncensored.Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\\\n\\\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\\\n\\\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\\\n\\\\n",
                 "description": "Lexi uncensored 8B model, specialized for adult content"
             },
             "aifeifei798/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored": {
                 "repo_id": "aifeifei798/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored-GGUF",
                 "filename": "DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\\\n\\\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\\\n\\\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\\\n\\\\n",
                 "description": "DarkIdol uncensored 8B model, enhanced for creative content"
             },
             "DevsDoCode/LLama-3-8b-Uncensored": {
                 "repo_id": "DevsDoCode/LLama-3-8b-Uncensored-GGUF",
                 "filename": "LLama-3-8b-Uncensored.Q4_K_M.gguf",
-                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n",
+                "template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\\\n\\\\n{system}<|eot_id|><|start_header_id|>user<|end_header_id|>\\\\n\\\\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\\\n\\\\n",
                 "description": "DevsDoCode uncensored 8B model, optimized for unrestricted content"
             },
             # Keep these specific models as requested
             "Luna-AI-Llama2-Uncensored": {
                 "repo_id": "TheBloke/Luna-AI-Llama2-Uncensored-GGUF",
                 "filename": "luna-ai-llama2-uncensored.Q4_K_M.gguf",
-                "template": "USER: {prompt}\\nASSISTANT:",
+                "template": "USER: {prompt}\\\\nASSISTANT:",
                 "description": "Efficient 7B uncensored model, good for most adult content tasks"
             },
             "WizardLM-13B-Uncensored": {
                 "repo_id": "TheBloke/WizardLM-13B-Uncensored-GGUF", 
                 "filename": "wizardlm-13b-uncensored.Q4_K_M.gguf",
-                "template": "You are a helpful AI assistant.\\n\\nUSER: {prompt}\\nASSISTANT:",
+                "template": "You are a helpful AI assistant.\\\\n\\\\nUSER: {prompt}\\\\nASSISTANT:",
                 "description": "Balanced 13B uncensored model, high quality responses"
             },
             "Wizard-Vicuna-30B-Uncensored": {
@@ -84,7 +84,7 @@ class InfluencerChatbot:
             "Nous-Hermes-13B-Uncensored": {
                 "repo_id": "TheBloke/Nous-Hermes-13b-GGUF",
                 "filename": "nous-hermes-13b.Q4_K_M.gguf",
-                "template": "### Instruction:\\n{prompt}\\n\\n### Response:",
+                "template": "### Instruction:\\\\n{prompt}\\\\n\\\\n### Response:",
                 "description": "Creative 13B uncensored model, excellent for roleplay and creative content"
             }
         }
@@ -113,51 +113,61 @@ Focus on creating visually appealing, tasteful adult content. Be specific and de
                 ]
             },
             "video_prompt": {
-                "system": """You are an expert at creating video prompts using WAN 2.1 format (Subject + Scene + Motion structure). Generate prompts following this exact structure:
+                "system": """You are an expert at creating comprehensive video prompts using WAN 2.1 format (Subject + Scene + Motion structure). Generate detailed, descriptive prompts following this exact structure:
 
-🎬 **SUBJECT**: [Detailed description of the main subject - appearance, clothing, positioning]
-🏞️ **SCENE**: [Environment, setting, lighting, atmosphere, background elements]
-🎭 **MOTION**: [Specific movements, actions, camera work - use simple, direct verbs]
+🎬 **SUBJECT**: [Comprehensive description of the main subject including detailed physical appearance, clothing/styling, initial positioning, facial expressions, and any distinctive characteristics that define their presence in the scene]
 
-**Technical Recommendations:**
-📹 Recommended FPS: 24-30 fps for smooth motion
-⏱️ Optimal Duration: 3-5 seconds for best quality
-🎞️ Frame Count: 72-150 frames (24fps × 3-5 seconds)
+🏞️ **SCENE**: [Extensive description of the environment including specific location details, lighting conditions (natural/artificial sources, color temperature, shadows), atmospheric elements, background objects, textures, colors, mood-setting elements, and any environmental factors that contribute to the overall aesthetic]
 
-Focus on clear, concise descriptions. Keep each section under 30 words for optimal video generation.""",
+🎭 **MOTION**: [Detailed sequence of movements and actions including specific body movements, facial expression changes, interaction with environment/objects, camera movements (pans, zooms, tracking), timing of actions, flow between different poses or positions, and dynamic elements that create visual interest throughout the sequence]
+
+**Enhanced Technical Specifications:**
+📹 Recommended FPS: 16-24 fps for optimal motion quality and file efficiency
+⏱️ Duration Range: Up to 30 seconds for comprehensive storytelling and scene development
+🎞️ Frame Count: 480-720 frames (16-24 fps × 30 seconds maximum)
+📐 Aspect Ratio: Consider 16:9 for cinematic feel or 9:16 for social media optimization
+🎨 Style Notes: Specify color grading preferences, visual style (realistic, artistic, vintage), and overall aesthetic direction
+
+Create rich, detailed descriptions that provide comprehensive guidance for video generation. Each section should be substantial and descriptive to ensure high-quality output.""",
                 "examples": [
-                    "Create a video prompt for an intimate dance sequence",
-                    "Generate a sensual morning routine video concept",
-                    "Design a romantic candlelit dinner scene with movement",
-                    "Create a playful pillow fight video prompt",
-                    "Generate a slow-motion silk fabric reveal sequence",
-                    "Design a passionate embrace and kiss scene",
-                    "Create a seductive getting-ready routine video"
+                    "Create a detailed video prompt for an intimate dance sequence with flowing movements and dramatic lighting changes",
+                    "Generate a comprehensive sensual morning routine video concept with natural lighting progression and multiple scene transitions",
+                    "Design an elaborate romantic candlelit dinner scene with detailed character interactions and atmospheric elements",
+                    "Create an extensive playful pillow fight video prompt with dynamic movements and changing camera angles",
+                    "Generate a detailed slow-motion silk fabric reveal sequence with intricate lighting and texture focus",
+                    "Design a comprehensive passionate embrace and kiss scene with emotional progression and cinematic camera work",
+                    "Create an elaborate seductive getting-ready routine video with multiple wardrobe changes and mirror interactions",
+                    "Generate a detailed outdoor sunset scene with natural lighting transitions and romantic atmosphere building",
+                    "Design a comprehensive bathroom scene with steam effects, water interactions, and mood lighting variations",
+                    "Create an extensive bedroom scene with multiple lighting setups and intimate character development"
                 ]
             },
             # RESTORED: Image to Video functionality
             "image_to_video": {
-                "system": """You are an expert at converting static image descriptions into dynamic video prompts using WAN 2.1 format (Subject + Scene + Motion structure). Analyze the image and convert to video format:
+                "system": """You are an expert at converting static image descriptions into dynamic video prompts using WAN 2.1 format (Subject + Scene + Motion structure). Analyze the image and convert to comprehensive video format:
 
-🖼️ **IMAGE ANALYSIS**: [Brief analysis of the static image]
+🖼️ **IMAGE ANALYSIS**: [Detailed analysis of the static image including composition, lighting, subject positioning, mood, and visual elements]
 
 **WAN 2.1 VIDEO FORMAT:**
-🎬 **SUBJECT**: [Subject from image with added movement capabilities]
-🏞️ **SCENE**: [Scene from image enhanced for video]
-🎭 **MOTION**: [Natural movements and camera work to bring image to life]
+🎬 **SUBJECT**: [Enhanced subject description from image with added movement capabilities, detailed physical characteristics, clothing dynamics, and expressive potential for video]
 
-**Technical Recommendations:**
-📹 Recommended FPS: 24-30 fps for smooth motion
-⏱️ Optimal Duration: 3-5 seconds for best quality
-🎞️ Frame Count: 72-150 frames (24fps × 3-5 seconds)
+🏞️ **SCENE**: [Expanded scene description from image enhanced for video with environmental dynamics, lighting variations, atmospheric changes, and background elements that can evolve during the sequence]
 
-Transform static concepts into engaging motion while maintaining focus.""",
+🎭 **MOTION**: [Comprehensive motion design including natural movements that bring the static image to life, camera dynamics, interaction possibilities, and sequence flow that maintains the original image's essence while adding cinematic value]
+
+**Enhanced Technical Specifications:**
+📹 Recommended FPS: 16-24 fps for smooth motion and optimal quality
+⏱️ Duration Range: Up to 30 seconds for full scene development
+🎞️ Frame Count: 480-720 frames (16-24 fps × 30 seconds maximum)
+🎨 Continuity Notes: Maintain visual consistency with source image while enhancing through motion
+
+Transform static concepts into engaging, detailed motion sequences while preserving and enhancing the original image's appeal and focus.""",
                 "examples": [
-                    "Convert this image prompt into a video: 'Sensual portrait of a woman in lingerie'",
-                    "Transform a bedroom scene into dynamic video content",
-                    "Add motion to a boudoir photography concept",
-                    "Create video dynamics from a romantic portrait",
-                    "Convert static intimate scene to flowing video"
+                    "Convert this detailed image prompt into a comprehensive video: 'Sensual portrait of a woman in lingerie with dramatic lighting'",
+                    "Transform an elaborate bedroom scene into dynamic video content with multiple movement sequences",
+                    "Add extensive motion and camera work to a detailed boudoir photography concept",
+                    "Create comprehensive video dynamics from a romantic portrait with environmental interactions",
+                    "Convert a static intimate scene to a flowing video with detailed character development and scene progression"
                 ]
             },
 
@@ -228,13 +238,13 @@ Transform static concepts into engaging motion while maintaining focus.""",
             filename = f"{self.history_folder}/conversation_{date_str}.txt"
             
             with open(filename, "a", encoding="utf-8") as f:
-                f.write(f"\n{'='*80}\n")
-                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Content Type: {content_type}\n")
-                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\n")
-                f.write(f"{'='*80}\n")
-                f.write(f"USER PROMPT:\n{prompt}\n")
-                f.write(f"\nAI RESPONSE:\n{response}\n")
+                f.write(f"\\n{'='*80}\\n")
+                f.write(f"Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\\n")
+                f.write(f"Content Type: {content_type}\\n")
+                f.write(f"Model: {getattr(self, 'current_model', 'Unknown')}\\n")
+                f.write(f"{'='*80}\\n")
+                f.write(f"USER PROMPT:\\n{prompt}\\n")
+                f.write(f"\\nAI RESPONSE:\\n{response}\\n")
                 
             print(f"💾 Conversation saved to {filename}")
             
@@ -304,12 +314,12 @@ Transform static concepts into engaging motion while maintaining focus.""",
             final_prompt = prompt
             if main_influencer.strip():
                 # If Main Influencer is provided, incorporate it into the prompt
-                final_prompt = f"Main Influencer: {main_influencer.strip()}\\n\\nRequest: {prompt}"
+                final_prompt = f"Main Influencer: {main_influencer.strip()}\\\\n\\\\nRequest: {prompt}"
             else:
                 # If Main Influencer is empty, generate diverse appearance for image/video prompts
                 if content_type in ["image_prompt", "video_prompt", "image_to_video"]:
                     diverse_appearance = self.generate_diverse_appearance()
-                    final_prompt = f"Subject appearance: {diverse_appearance}\\n\\nRequest: {prompt}"
+                    final_prompt = f"Subject appearance: {diverse_appearance}\\\\n\\\\nRequest: {prompt}"
             
             # Format the full prompt based on model type
             model_config = self.model_configs[self.current_model]
@@ -324,7 +334,7 @@ Transform static concepts into engaging motion while maintaining focus.""",
             else:
                 # Legacy format - combine system and user prompt
                 full_prompt = model_config["template"].format(
-                    prompt=f"{system_prompt}\\n\\nUser Request: {final_prompt}"
+                    prompt=f"{system_prompt}\\\\n\\\\nUser Request: {final_prompt}"
                 )
             
             progress(0.3, "Generating response...")
@@ -335,7 +345,7 @@ Transform static concepts into engaging motion while maintaining focus.""",
                 max_tokens=1024,
                 temperature=temperature,
                 top_p=0.9,
-                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\n\\nUSER:", "\\n\\nASSISTANT:"],
+                stop=["<|eot_id|>", "<|im_end|>", "</s>", "[/INST]", "USER:", "ASSISTANT:", "\\\\n\\\\nUSER:", "\\\\n\\\\nASSISTANT:"],
                 echo=False
             )
             
@@ -356,7 +366,7 @@ Transform static concepts into engaging motion while maintaining focus.""",
             self.conversation_history.append(conversation_entry)
             
             # Save to text file
-            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\\n\\n{prompt}", generated_text, content_type)
+            self.save_conversation_to_txt(f"Main Influencer: {main_influencer}\\\\n\\\\n{prompt}", generated_text, content_type)
             
             progress(1.0, "Response generated!")
             print(f"✅ Response generated successfully ({len(generated_text)} characters)")
@@ -381,7 +391,6 @@ chatbot = InfluencerChatbot()
 def load_model_interface(model_name: str, gpu_layers: int, progress=gr.Progress()) -> str:
     """Interface function for loading models."""
     return chatbot.load_model(model_name, gpu_layers, progress)
-
 
 
 def generate_content(prompt: str, content_type: str, main_influencer: str, temperature: float, progress=gr.Progress()) -> str:
@@ -482,7 +491,7 @@ def analyze_prompt_complexity(prompt: str) -> Tuple[str, str]:
         
         for category, count in analysis['technical_categories'].items():
             if count > 0:
-                analysis_text += f"- {category.title()}: {count} terms\\n"
+                analysis_text += f"- {category.title()}: {count} terms\\\\n"
         
         # Format SD Forge parameters in Flux format with automatic selections
         params_text = f"""⚙️ **Automatically Recommended Stable Diffusion Forge Parameters (Flux Format)**
@@ -645,7 +654,7 @@ def create_interface():
                         
                         load_model_btn = gr.Button("🔄 Load Model", variant="primary")
                         model_status = gr.Textbox(label="Model Status", interactive=False)
-                
+
 
             
             # Content Generation Tab
