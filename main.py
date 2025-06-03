@@ -383,7 +383,6 @@ def load_model_interface(model_name: str, gpu_layers: int, progress=gr.Progress(
     return chatbot.load_model(model_name, gpu_layers, progress)
 
 
-
 def generate_content(prompt: str, content_type: str, main_influencer: str, temperature: float, progress=gr.Progress()) -> str:
     """Interface function for generating content."""
     if not prompt.strip():
@@ -630,8 +629,7 @@ def create_interface():
                         model_dropdown = gr.Dropdown(
                             choices=list(chatbot.model_configs.keys()),
                             label="Select Model",
-                            value="Luna-AI-Llama2-Uncensored",
-                            info="Choose the AI model to load"
+                            value="Luna-AI-Llama2-Uncensored"
                         )
                         
                         gpu_layers_slider = gr.Slider(
@@ -639,13 +637,11 @@ def create_interface():
                             maximum=80,
                             value=35,
                             step=1,
-                            label="GPU Layers",
-                            info="Number of layers to offload to GPU (0 = CPU only, higher = more GPU usage)"
+                            label="GPU Layers"
                         )
                         
                         load_model_btn = gr.Button("🔄 Load Model", variant="primary")
                         model_status = gr.Textbox(label="Model Status", interactive=False)
-                
 
             
             # Content Generation Tab
@@ -655,21 +651,18 @@ def create_interface():
                         content_type = gr.Dropdown(
                             choices=["image_prompt", "video_prompt", "image_to_video"],
                             value="image_prompt",
-                            label="Content Type",
-                            info="Select the type of content to generate"
+                            label="Content Type"
                         )
                         
                         main_influencer = gr.Textbox(
                             label="Main Influencer Description (Optional)",
-                            placeholder="e.g., 25-year-old blonde woman with blue eyes, athletic build...",
-                            info="Describe the main subject. Leave empty for diverse random appearance generation."
+                            placeholder="e.g., 25-year-old blonde woman with blue eyes, athletic build..."
                         )
                         
                         user_prompt = gr.Textbox(
                             label="Your Prompt",
                             placeholder="Describe what you want to create...",
-                            lines=4,
-                            info="Enter your creative request here"
+                            lines=4
                         )
                         
                         with gr.Row():
@@ -678,8 +671,7 @@ def create_interface():
                                 maximum=1.5,
                                 value=0.7,
                                 step=0.1,
-                                label="Creativity (Temperature)",
-                                info="Higher values = more creative, lower = more focused"
+                                label="Creativity (Temperature)"
                             )
                         
                         with gr.Row():
@@ -701,8 +693,7 @@ def create_interface():
                 generated_content = gr.Textbox(
                     label="Generated Content",
                     lines=15,
-                    interactive=False,
-                    info="Your generated content will appear here"
+                    interactive=False
                 )
             
             # Image Analysis Tab
@@ -711,15 +702,13 @@ def create_interface():
                     with gr.Column():
                         uploaded_image = gr.Image(
                             label="Upload Image for Analysis",
-                            type="pil",
-                            info="Upload an image to analyze and generate descriptions"
+                            type="pil"
                         )
                         
                         caption_model_dropdown = gr.Dropdown(
                             choices=list(chatbot.caption_models.keys()),
                             value="BLIP",
-                            label="Caption Model",
-                            info="Select the model for image captioning"
+                            label="Caption Model"
                         )
                         
                         analyze_image_btn = gr.Button("🔍 Analyze Image", variant="primary")
@@ -728,15 +717,13 @@ def create_interface():
                         image_caption = gr.Textbox(
                             label="Image Caption",
                             lines=3,
-                            interactive=False,
-                            info="Basic caption of the image"
+                            interactive=False
                         )
                         
                         image_description = gr.Textbox(
                             label="Detailed Description",
                             lines=8,
-                            interactive=False,
-                            info="Detailed analysis of the image"
+                            interactive=False
                         )
                 
                 # Image to Video Section
@@ -747,8 +734,7 @@ def create_interface():
                         video_request = gr.Textbox(
                             label="Video Request",
                             placeholder="Describe how you want to animate this image...",
-                            lines=3,
-                            info="Describe the motion and dynamics you want to add"
+                            lines=3
                         )
                         
                         generate_video_prompt_btn = gr.Button("🎬 Generate Video Prompt", variant="primary")
@@ -757,8 +743,7 @@ def create_interface():
                         video_prompt_output = gr.Textbox(
                             label="Generated Video Prompt",
                             lines=10,
-                            interactive=False,
-                            info="WAN 2.1 format video prompt with 24-30 fps recommendations"
+                            interactive=False
                         )
             
             # Prompt Analysis Tab
@@ -775,8 +760,7 @@ def create_interface():
                         analysis_prompt = gr.Textbox(
                             label="Prompt to Analyze",
                             placeholder="Enter your image generation prompt here...",
-                            lines=5,
-                            info="Enter any image generation prompt for automatic analysis and parameter optimization"
+                            lines=5
                         )
                         
                         analyze_prompt_btn = gr.Button("🔍 Analyze & Optimize", variant="primary", size="lg")
@@ -786,16 +770,14 @@ def create_interface():
                         complexity_analysis = gr.Textbox(
                             label="Complexity Analysis",
                             lines=12,
-                            interactive=False,
-                            info="Detailed analysis of prompt complexity and technical elements"
+                            interactive=False
                         )
                     
                     with gr.Column():
                         sd_parameters = gr.Textbox(
                             label="Automatically Optimized SD Forge Parameters",
                             lines=12,
-                            interactive=False,
-                            info="Ready-to-use parameters automatically optimized for your prompt"
+                            interactive=False
                         )
             
             # Conversation History Tab
@@ -806,8 +788,7 @@ def create_interface():
                 
                 history_status = gr.Textbox(
                     label="History Status",
-                    interactive=False,
-                    info="Status of history operations"
+                    interactive=False
                 )
                 
                 gr.HTML("""
