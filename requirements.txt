@@ -1,25 +1,23 @@
-# Core dependencies for enhanced LLM chatbot
-gradio==5.32.0
-llama-cpp-python
-huggingface-hub>=0.20.0,<1.0.0
-python-dotenv>=1.0.0,<2.0.0
-numpy>=1.24.3,<2.0.0
-requests>=2.31.0,<3.0.0
 
-# Additional dependencies for enhanced functionality
-# webbrowser, threading, datetime, typing, json, os, logging, random are built-in modules
+# Core dependencies for Fanvue Content Chatbot Extension
+gradio>=4.0.0
+torch>=1.9.0
+torchvision>=0.10.0
+Pillow>=8.0.0
+numpy>=1.21.0
+requests>=2.25.0
 
-# Note: Removed all image analysis dependencies:
-# - PIL/Pillow (image processing)
-# - transformers vision components
-# - torch/torchvision (deep learning)
-# - opencv-python (computer vision)
-# - ultralytics (YOLO)
-# - segment-anything (image segmentation)
-# - matplotlib (plotting)
-# - diffusers (image generation)
-# - accelerate (model acceleration)
-# - flask (web framework)
-# 
-# This streamlined version focuses purely on text-based LLM functionality
-# with expanded model compatibility and enhanced user experience.
+# Language model support
+llama-cpp-python>=0.2.0
+
+# Image processing
+opencv-python>=4.5.0
+transformers>=4.20.0
+
+# Utilities
+python-dateutil>=2.8.0
+tqdm>=4.60.0
+
+# Optional: For enhanced image analysis
+# clip-by-openai>=1.0.0
+# sentence-transformers>=2.0.0
