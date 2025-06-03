@@ -1,239 +1,191 @@
 
-# Adult Content Creation Chatbot
+# Fanvue Content Chatbot - Stable Diffusion WebUI Forge Extension
 
-A sophisticated Gradio-based application for generating adult content prompts using uncensored AI models. This chatbot is specifically designed for content creators on platforms like Fanvue, OnlyFans, and other adult content platforms.
+A sophisticated AI-powered chatbot extension for Stable Diffusion WebUI Forge, specifically designed for adult content creators. This extension integrates seamlessly as a new tab in the Forge interface, providing powerful content generation capabilities using uncensored language models.
 
 ## 🌟 Features
 
-- **Uncensored AI Models**: Uses specialized uncensored language models for adult content generation
-- **Multiple Model Support**: Luna-AI-Llama2, WizardLM-13B, and Wizard-Vicuna-30B models
-- **Specialized Prompts**: Pre-built prompt templates for various adult content scenarios
-- **Interactive Web Interface**: Clean, user-friendly Gradio interface
-- **Content Export**: Save and export generated content
-- **Conversation History**: Track and review previous interactions
-- **Model Management**: Easy model loading and configuration
+- **Multiple Uncensored Models**: Support for Luna-AI-Llama2, WizardLM-13B, and Wizard-Vicuna-30B
+- **Specialized Templates**: Pre-built prompt templates for various adult content scenarios
+- **Image Analysis**: Upload and analyze images for content inspiration
+- **Conversation Management**: Save and manage conversation history
+- **Forge Integration**: Seamless integration as a new tab in SD WebUI Forge
+- **Real-time Generation**: Interactive content generation with progress tracking
 
-## 🚀 Quick Start (Windows)
+## 📋 Requirements
 
-### Prerequisites
-- Windows 10/11
-- Python 3.8 or higher ([Download from python.org](https://python.org))
-- At least 8GB RAM (16GB recommended)
-- 10GB+ free disk space
-
-### Installation
-
-1. **Download the project**:
-   ```bash
-   git clone https://github.com/Valorking6/fanvue-content-chatbot.git
-   cd fanvue-content-chatbot
-   ```
-
-2. **Run the installer**:
-   ```bash
-   install.bat
-   ```
-   This will:
-   - Create a Python virtual environment
-   - Install all required dependencies
-   - Download the default AI model (Luna-AI-Llama2-Uncensored)
-   - Set up necessary directories
-
-3. **Start the application**:
-   ```bash
-   start.bat
-   ```
-
-4. **Access the interface**:
-   Open your browser and go to: `http://127.0.0.1:7861`
-
-### Manual Installation (Alternative)
-
-If the batch files don't work, you can install manually:
-
-```bash
-# Create virtual environment
-python -m venv venv
-venv\Scripts\activate.bat
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Download model
-python setup.py --download-model Luna-AI-Llama2-Uncensored
-
-# Start application
-python main.py
-```
-
-## 🐧 Linux/Mac Installation
-
-### Prerequisites
+- Stable Diffusion WebUI Forge
 - Python 3.8+
-- pip
-- At least 8GB RAM (16GB recommended)
+- llama-cpp-python
+- gradio
+- PIL (Pillow)
+- torch (for image analysis)
 
-### Installation Steps
+## 🚀 Installation
 
-1. **Clone the repository**:
+1. **Clone to Extensions Directory**:
    ```bash
+   cd /path/to/stable-diffusion-webui-forge/extensions
    git clone https://github.com/Valorking6/fanvue-content-chatbot.git
-   cd fanvue-content-chatbot
    ```
 
-2. **Create virtual environment**:
+2. **Switch to Extension Branch**:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Linux/Mac
+   cd fanvue-content-chatbot
+   git checkout Extension
    ```
 
-3. **Install dependencies**:
+3. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Run setup script**:
-   ```bash
-   python setup.py
-   ```
+4. **Restart Forge**: Restart your Stable Diffusion WebUI Forge instance
 
-5. **Start the application**:
-   ```bash
-   python main.py
-   ```
+## 🎯 Usage
 
-## 🎯 Usage Guide
+1. **Access the Extension**: Look for the "Fanvue Chatbot" tab in your Forge interface
 
-### Getting Started
+2. **Load a Model**: 
+   - Select a model from the dropdown
+   - Click "Load Model" and wait for it to download/load
 
-1. **Load a Model**: Go to the "Model Settings" tab and select a model to load
-2. **Choose Content Type**: Select from various adult content categories
-3. **Generate Content**: Enter your prompt and click "Generate"
-4. **Refine Results**: Use the conversation history to build upon previous responses
-5. **Export Content**: Save your generated content for later use
+3. **Generate Content**:
+   - Choose a prompt template or use custom prompt
+   - Adjust temperature and max tokens as needed
+   - Click "Generate Content"
 
-### Available Models
+4. **Analyze Images**:
+   - Upload an image in the Image Analysis section
+   - Click "Analyze Image" for content suggestions
 
-- **Luna-AI-Llama2-Uncensored** (7B): Fast, efficient, good for most tasks
-- **WizardLM-13B-Uncensored** (13B): Balanced performance and quality
-- **Wizard-Vicuna-30B-Uncensored** (30B): Highest quality, requires more resources
+5. **Manage Conversations**:
+   - View conversation history
+   - Save conversations to files
+   - Clear history when needed
 
-### Content Categories
+## 🎨 Prompt Templates
 
-- Photo/Video Descriptions
-- Roleplay Scenarios
-- Interactive Stories
-- Custom Prompts
-- Social Media Captions
-- And more...
+The extension includes specialized templates for:
+
+- **Seductive Photo**: Artistic photo shoot descriptions
+- **Intimate Story**: Short story scenarios
+- **Fantasy Roleplay**: Character and setting development
+- **Sensual Description**: Atmospheric scene creation
+- **Content Caption**: Engaging social media captions
+- **Custom Prompt**: Your own creative prompts
 
 ## ⚙️ Configuration
 
-### GPU Acceleration
-
-For NVIDIA GPUs, install CUDA support:
-```bash
-pip install ctransformers[cuda]
-```
-
-For Apple Silicon Macs:
-```bash
-pip install ctransformers[metal]
-```
-
 ### Model Settings
+- **Temperature**: Controls creativity (0.1-2.0)
+- **Max Tokens**: Response length (50-1000)
+- **Context Length**: Varies by model
 
-- **Temperature**: Controls creativity (0.1-1.0)
-- **Max Tokens**: Maximum response length
-- **Top-p**: Nucleus sampling parameter
-- **GPU Layers**: Number of layers to run on GPU
+### Available Models
+- **Luna-AI-Llama2-Uncensored**: Best for creative content
+- **WizardLM-13B-V1.2-Uncensored**: Great for detailed scenarios
+- **Wizard-Vicuna-30B-Uncensored**: Most powerful for complex content
 
-## 📁 Project Structure
+## 🔧 Technical Details
 
+### Extension Structure
 ```
 fanvue-content-chatbot/
-├── main.py              # Main application file
-├── prompt_utils.py      # Prompt templates and utilities
-├── setup.py            # Setup and model download script
-├── requirements.txt    # Python dependencies
-├── install.bat         # Windows installation script
-├── start.bat          # Windows startup script
-├── models/            # Downloaded AI models
-├── exports/           # Exported content
-└── logs/             # Application logs
+├── scripts/
+│   └── fanvue_chatbot.py      # Main extension script
+├── __init__.py                # Extension initialization
+├── image_analyzer.py          # Image analysis utilities
+├── sd_forge_utils.py          # Forge integration utilities
+├── requirements.txt           # Python dependencies
+└── README.md                  # This file
 ```
 
-## 🔧 Troubleshooting
+### Integration Points
+- Extends `scripts.Script` for Forge compatibility
+- Uses `gr.Tab()` for new tab creation
+- Implements proper event handling and state management
+- Follows Forge extension conventions
+
+## 🛠️ Development
+
+### Adding New Models
+Edit the `model_configs` dictionary in `fanvue_chatbot.py`:
+
+```python
+"Your-Model-Name": {
+    "repo_id": "huggingface/repo",
+    "filename": "model.gguf",
+    "description": "Model description",
+    "context_length": 4096,
+    "temperature": 0.7
+}
+```
+
+### Adding New Templates
+Edit the `prompt_templates` dictionary:
+
+```python
+"Template Name": "Template description and instructions..."
+```
+
+## 📝 Logging
+
+The extension creates detailed logs in:
+- `fanvue_chatbot.log`: Application logs
+- `conversation_logs/`: Saved conversations
+
+## 🔒 Privacy & Security
+
+- All processing happens locally
+- No data sent to external servers (except model downloads)
+- Conversation history stored locally
+- Models cached locally after first download
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-**Model won't load**:
-- Check available RAM (8GB+ required)
-- Try a smaller model (Luna-AI instead of Wizard-Vicuna)
-- Restart the application
+1. **Model Loading Fails**:
+   - Check internet connection for first download
+   - Ensure sufficient disk space
+   - Verify llama-cpp-python installation
 
-**Slow generation**:
-- Enable GPU acceleration if available
-- Reduce max tokens
-- Use a smaller model
+2. **Extension Not Visible**:
+   - Restart Forge completely
+   - Check extension is in correct directory
+   - Verify no Python errors in console
 
-**Installation fails**:
-- Ensure Python 3.8+ is installed
-- Check internet connection for model download
-- Try manual installation steps
-
-**Windows batch files don't work**:
-- Run Command Prompt as Administrator
-- Check Python is in PATH
-- Use manual installation method
+3. **Generation Errors**:
+   - Ensure model is loaded first
+   - Check prompt length
+   - Verify temperature/token settings
 
 ### Getting Help
 
-1. Check the logs in the `logs/` directory
-2. Review the console output for error messages
-3. Ensure all requirements are met
-4. Try the manual installation method
-
-## ⚠️ Important Notes
-
-### Content Guidelines
-- This tool is designed for adult content creators (18+)
-- Use responsibly and in accordance with platform guidelines
-- Respect consent and legal boundaries
-- Review generated content before publishing
-
-### Privacy & Security
-- All processing happens locally on your machine
-- No data is sent to external servers (except for model downloads)
-- Generated content is stored locally only
-- Clear conversation history regularly if needed
-
-### Legal Disclaimer
-- Users are responsible for compliance with local laws
-- Content must comply with platform terms of service
-- This tool is for creative assistance only
-- Generated content should be reviewed and edited as needed
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+- Check the Forge console for error messages
+- Review the `fanvue_chatbot.log` file
+- Ensure all dependencies are installed
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🔗 Links
+## 🤝 Contributing
 
-- **Repository**: https://github.com/Valorking6/fanvue-content-chatbot
-- **Issues**: https://github.com/Valorking6/fanvue-content-chatbot/issues
-- **Documentation**: See the `example_usage.md` file for detailed usage examples
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📞 Support
+
+For support and questions:
+- Open an issue on GitHub
+- Check the documentation
+- Review the troubleshooting section
 
 ---
 
-**⚠️ 18+ Content Warning**: This application is designed for adult content creation and is intended for users 18 years and older. Please use responsibly and in compliance with all applicable laws and platform guidelines.
-
-**🚀 Application runs on port 7861**: Access the interface at `http://127.0.0.1:7861`
+**Note**: This extension is designed for adult content creation. Please ensure compliance with your local laws and platform guidelines when using this tool.
